@@ -18,6 +18,7 @@
 # along with Cockpit; If not, see <http://www.gnu.org/licenses/>.
 
 import os
+import time
 import sys
 
 # import Cockpit's machinery for test VMs and its browser test API
@@ -36,7 +37,7 @@ class TestMachinesConsoles(VirtualMachinesCase):
     def testExternalConsole(self):
         b = self.browser
 
-        self.createVm("subVmTest1", graphics="spice")
+        self.createVm("subVmTest1", graphics="vnc")
 
         self.login_and_go("/machines")
         b.wait_in_text("body", "Virtual machines")
@@ -45,14 +46,16 @@ class TestMachinesConsoles(VirtualMachinesCase):
         b.wait_in_text("#vm-subVmTest1-system-state", "Running")  # running or paused
         self.goToVmPage("subVmTest1")
 
-        # since VNC is not defined for this VM, the view for "Desktop Viewer" is rendered by default
+        b.click("#pf-c-console__type-selector")
+        b.wait_visible("ul.pf-c-select__menu")
+        b.click("#DesktopViewer button")
         b.wait_in_text(".pf-c-console__manual-connection dl > div:first-child dd", "127.0.0.1")
         b.wait_in_text(".pf-c-console__manual-connection dl > div:nth-child(2) dd", "5900")
 
         b.click(".pf-c-console__remote-viewer-launch-vv")  # "Launch Remote Viewer" button
         b.wait_visible("#dynamically-generated-file")  # is .vv file generated for download?
         self.assertEqual(b.attr("#dynamically-generated-file", "href"),
-                         u"data:application/x-virt-viewer,%5Bvirt-viewer%5D%0Atype%3Dspice%0Ahost%3D127.0.0.1%0Aport%3D5900%0Adelete-this-file%3D1%0Afullscreen%3D0%0A")
+                         u"data:application/x-virt-viewer,%5Bvirt-viewer%5D%0Atype%3Dvnc%0Ahost%3D127.0.0.1%0Aport%3D5900%0Adelete-this-file%3D1%0Afullscreen%3D0%0A")
 
         # HACK: clicking 'Launch Remote Viewer' kills execution context and thus CDP fails
         b.reload()
@@ -62,6 +65,9 @@ class TestMachinesConsoles(VirtualMachinesCase):
         b.click("button:contains(Expand)")
 
         # Check "More information"
+        b.click("#pf-c-console__type-selector")
+        b.wait_visible("ul.pf-c-select__menu")
+        b.click("#DesktopViewer button")
         b.click('.pf-c-console__remote-viewer .pf-c-expandable-section__toggle')
         b.wait_in_text('.pf-c-expandable-section__content',
                        'Clicking "Launch remote viewer" will download')
@@ -87,12 +93,12 @@ class TestMachinesConsoles(VirtualMachinesCase):
         b.wait_visible(".pf-c-console__vnc canvas")
 
         # make sure the log file is full - then empty it and reboot the VM - the log file should fill up again
-        wait(lambda: "login as 'cirros' user." in self.machine.execute(f"cat {args['logfile']}"), delay=3)
+        wait(lambda: "localhost login" in self.machine.execute(f"cat {args['logfile']}"), delay=3)
 
         self.machine.execute(f"echo '' > {args['logfile']}")
         b.click("#subVmTest1-system-vnc-sendkey button")
         b.click("#ctrl-alt-Delete")
-        wait(lambda: "Requesting system reboot" in self.machine.execute(f"cat {args['logfile']}"), delay=3)
+        wait(lambda: "Stopped" in self.machine.execute(f"cat {args['logfile']}"), delay=3)
 
     def testInlineConsoleWithUrlRoot(self, urlroot=""):
         self.testInlineConsole(urlroot="/webcon")
@@ -119,11 +125,13 @@ class TestMachinesConsoles(VirtualMachinesCase):
         b.wait_in_text(f"#{name}-terminal .xterm-accessibility-tree", f"Connected to domain '{name}'")
 
         # in case the OS already finished booting, press Enter into the console to re-trigger the login prompt
-        b.focus(f"#{name}-terminal .xterm-accessibility-tree")
-        b.key_press("\r")
+        for _ in range(0, 60):
+            b.focus(f"#{name}-terminal .xterm-accessibility-tree")
+            b.key_press("\r")
+            time.sleep(1)
 
         with b.wait_timeout(60):
-            b.wait_in_text(f"#{name}-terminal .xterm-accessibility-tree", "cirros login")
+            b.wait_in_text(f"#{name}-terminal .xterm-accessibility-tree", "localhost login")
 
         b.click(f"#{name}-serialconsole-disconnect")
         b.wait_text(f"#{name}-terminal", "Disconnected from serial console. Click the connect button.")

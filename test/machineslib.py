@@ -18,6 +18,7 @@
 from testlib import MachineCase
 from netlib import NetworkHelpers
 from storagelib import StorageHelpers
+from testlib import wait
 
 distrosWithMonolithicDaemon = ["rhel-8-6", "rhel-8-7", "rhel-8-8", "ubuntu-stable", "ubuntu-2204", "debian-testing", "debian-stable", "centos-8-stream", "arch"]
 
@@ -39,7 +40,9 @@ class VirtualMachinesCaseHelpers:
         if action == "resume" or action == "run":
             b.wait_in_text("#vm-{0}-{1}-state".format(vmName, connectionName), "Running")
         if action == "forceOff" or action == "off":
-            b.wait_in_text("#vm-{0}-{1}-state".format(vmName, connectionName), "Shut off")
+            # b.wait_in_text("#vm-{0}-{1}-state".format(vmName, connectionName), "Shut off")
+            # In s390x, shut off will take a long time, so use wait function
+            wait(lambda: "Shut off" in b.text(f"#vm-{vmName}-{connectionName}-state"), delay=3)
 
     def goToVmPage(self, vmName, connectionName='system'):
         self.browser.click("tbody tr[data-row-id=vm-{0}-{1}] a.vm-list-item-name".format(vmName, connectionName))  # click on the row
@@ -115,18 +118,17 @@ class VirtualMachinesCaseHelpers:
         m.execute("virsh net-start default || true")
         m.execute(r"until virsh net-info default | grep 'Active:\s*yes'; do sleep 1; done")
 
-    def createVm(self, name, graphics='none', ptyconsole=False, running=True, memory=128, connection='system'):
+    def createVm(self, name, graphics="none", ptyconsole=False, running=True, memory=2048, connection='system'):
         m = self.machine
 
-        image_file = m.pull("cirros")
-
+        originalImage = "/var/lib/libvirt/images/fedora31.qcow2"
+        m.execute("test -f {}".format(originalImage))
         if connection == "system":
             img = "/var/lib/libvirt/images/{0}-2.img".format(name)
         else:
             m.execute("runuser -l admin -c 'mkdir -p /home/admin/.local/share/libvirt/images'")
             img = "/home/admin/.local/share/libvirt/images/{0}-2.img".format(name)
-
-        m.upload([image_file], img)
+        m.execute("cp {} {}".format(originalImage, img))
         m.execute("chmod 777 {0}".format(img))
 
         args = {

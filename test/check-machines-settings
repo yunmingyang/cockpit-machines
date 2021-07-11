@@ -19,6 +19,7 @@
 
 import os
 import sys
+import time
 
 # import Cockpit's machinery for test VMs and its browser test API
 TEST_DIR = os.path.dirname(__file__)
@@ -241,15 +242,15 @@ class TestMachinesSettings(VirtualMachinesCase):
         # Choose manually a CPU model
         b.click("#vm-subVmTest1-cpu-model button")
         b.wait_visible("#machines-cpu-type-modal")
-        b.select_from_dropdown("#cpu-model-select-group select", "coreduo")
+        b.select_from_dropdown("#cpu-model-select-group select", "z13.2")
         b.click("#cpu-config-dialog-apply")
         b.wait_not_present("#machines-cpu-type-modal")
-        b.wait_in_text("#vm-subVmTest1-cpu-model .pf-c-description-list__text", "custom (coreduo)")
+        b.wait_in_text("#vm-subVmTest1-cpu-model .pf-c-description-list__text", "custom (z13.2)")
 
         # Verify libvirt XML
         dom_xml = "virsh dumpxml subVmTest1"
         xmllint_element = f"{dom_xml} | xmllint --xpath 'string(//domain/{{prop}})' - 2>&1 || true"
-        self.assertEqual("coreduo", m.execute(xmllint_element.format(prop='cpu/model')).strip())
+        self.assertEqual("z13.2", m.execute(xmllint_element.format(prop='cpu/model')).strip())
 
         # Host-model gets expanded  to custom mode when the VM is running
         b.click("#vm-subVmTest1-cpu-model button")
@@ -284,16 +285,17 @@ class TestMachinesSettings(VirtualMachinesCase):
         b.wait_visible("#vm-subVmTest1-boot-order button[aria-disabled=true]")
         self.performAction("subVmTest1", "forceOff")
 
-        # No host device is attached to VM by default, so attach a PCI device to have at least 1 host device in boot order
-        # Take a device from the end of the list, since first device might be a root pci device
-        pci_output = m.execute("virsh nodedev-list --cap pci").strip().splitlines()[-1]
-        m.execute("virsh nodedev-list --cap pci").strip()
-        m.execute("virsh nodedev-list --cap pci").strip().splitlines()
-        m.execute("virsh nodedev-list --cap pci").strip().splitlines()[-1]
-        # Turn 'pci_0123_45_67_8' into '0123:45:67.8'
-        split = pci_output[len("pci_"):].split('_')
-        pci_slot = f"{split[0]}:{split[1]}:{split[2]}.{split[3]}"
-        m.execute(f"virt-xml subVmTest1 --add-device --hostdev {pci_slot}")
+        # no PCI devices in s390x
+        # # No host device is attached to VM by default, so attach a PCI device to have at least 1 host device in boot order
+        # # Take a device from the end of the list, since first device might be a root pci device
+        # pci_output = m.execute("virsh nodedev-list --cap pci").strip().splitlines()[-1]
+        # m.execute("virsh nodedev-list --cap pci").strip()
+        # m.execute("virsh nodedev-list --cap pci").strip().splitlines()
+        # m.execute("virsh nodedev-list --cap pci").strip().splitlines()[-1]
+        # # Turn 'pci_0123_45_67_8' into '0123:45:67.8'
+        # split = pci_output[len("pci_"):].split('_')
+        # pci_slot = f"{split[0]}:{split[1]}:{split[2]}.{split[3]}"
+        # m.execute(f"virt-xml subVmTest1 --add-device --hostdev {pci_slot}")
 
         # Older libvirt versions don't fire events for host device attachement so we have to reload the page
         b.reload()
@@ -309,7 +311,7 @@ class TestMachinesSettings(VirtualMachinesCase):
                        m.execute("virsh domblklist subVmTest1 | awk 'NR==3{print $2}'").strip())
         b.wait_in_text("#vm-subVmTest1-order-modal-device-row-1 .boot-order-additional-info",
                        m.execute("virsh domiflist subVmTest1 | awk 'NR==3{print $5}'").strip())
-        b.wait_visible(f".boot-order-additional-info .pf-c-description-list__description:contains('{pci_slot}')")
+        # b.wait_visible(f".boot-order-additional-info .pf-c-description-list__description:contains('{pci_slot}')")
         # Check a cdrom attributes are shown correctly
         cdrom_row = b.text(".boot-order-list-view li:nth-child(3) .boot-order-additional-info")
         self.assertTrue("cdrom" and "/var/lib/libvirt/images/phonycdrom" in cdrom_row)
@@ -405,7 +407,7 @@ class TestMachinesSettings(VirtualMachinesCase):
 
         # Check memory hotunplugging
         # The balloon driver needs to be loaded to descrease memory
-        wait(lambda: "login as 'cirros' user" in self.machine.execute(f"cat {args['logfile']}"), delay=3)
+        wait(lambda: "localhost login" in self.machine.execute(f"cat {args['logfile']}"), delay=3)
 
         b.set_input_text("#vm-subVmTest1-memory-modal-memory", str(current_memory - 10))
         b.blur("#vm-subVmTest1-memory-modal-memory")
@@ -451,7 +453,7 @@ class TestMachinesSettings(VirtualMachinesCase):
         b.wait_in_text("#vm-subVmTest1-system-state", "Running")
         self.goToVmPage("subVmTest1")
 
-        wait(lambda: "login as 'cirros' user" in m.execute(f"cat {args['logfile']}"), delay=3)
+        wait(lambda: "localhost login" in m.execute(f"cat {args['logfile']}"), delay=3)
 
         # Change CPU model setting
         b.click("#vm-subVmTest1-cpu-model button")

@@ -20,6 +20,7 @@
 import os
 import time
 import xml.etree.ElementTree as ET
+from unittest import skip
 
 import machineslib
 import testlib
@@ -52,11 +53,11 @@ fullscreen=0
 """
         self.waitDownloadFile("console.vv", content=content, expected_size=len(content))
 
-    @testlib.skipImage('SPICE not supported on RHEL', "rhel-*", "centos-*")
+    # @testlib.skipImage('SPICE not supported on RHEL', "rhel-*", "centos-*")
     def testExternalConsole(self):
         b = self.browser
 
-        self.createVm("subVmTest1", graphics="spice")
+        self.createVm("subVmTest1", graphics="vnc")
 
         self.login_and_go("/machines")
         self.waitPageInit()
@@ -86,7 +87,7 @@ fullscreen=0
         b.click(".vm-console-footer .pf-v6-c-button.pf-m-link")
         b.wait_not_present(".ct-remote-viewer-popover")
 
-        self.waitViewerDownload("spice", b.address)
+        self.waitViewerDownload("vnc", b.address)
 
     def testInlineConsole(self, urlroot=""):
         b = self.browser
@@ -112,7 +113,7 @@ fullscreen=0
         self.machine.execute(f"echo '' > {args['logfile']}")
         b.click("#vnc-actions")
         b.click("#ctrl-alt-Delete")
-        self.waitLogFile(args['logfile'], "reboot: Restarting system")
+        self.waitLogFile(args['logfile'], "Requesting system reboot")
 
     def testInlineConsoleWithUrlRoot(self, urlroot=""):
         self.testInlineConsole(urlroot="/webcon")
@@ -213,6 +214,8 @@ fullscreen=0
                   virsh start vmWithSerialConsole
                   """)
 
+        # Add a sleep here as maybe the console selector will not shown if clicking too fast
+        time.sleep(2)
         for i in range(0, 6):
             tag = "serial" if i == 0 else "console"
             b.select_PF(".consoles-card .pf-v6-c-menu-toggle", f"Serial ({tag}{i})")
@@ -280,6 +283,8 @@ fullscreen=0
         b.wait_not_present(f"#{name}-terminal")
         b.wait_visible(".vm-console-vnc canvas")
 
+        # add a sleep here as Connection closed (code: 1000)
+        time.sleep(2)
         # Test message is present if VM is not running
         self.performAction(name, "forceOff", checkExpectedState=False)
 
@@ -293,6 +298,7 @@ fullscreen=0
         self.allow_browser_errors("Disconnection timed out.",
                                   "Failed when connecting: Connection closed")
 
+    @skip("no enough resource")
     @testlib.skipBeiboot("multi-host config not supported in beiboot scenario")
     def testMultiHostExternalConsole(self):
         b = self.browser

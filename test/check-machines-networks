@@ -623,7 +623,8 @@ class TestMachinesNetworks(machineslib.VirtualMachinesCase):
         m.execute("virsh detach-interface --persistent --type network --domain subVmTest1")
 
         # We don't get events for shut off VMs so reload the page
-        b.reload()
+        with b.wait_timeout(180):
+            b.reload()
         b.enter_page('/machines')
         self.waitPageInit()
 

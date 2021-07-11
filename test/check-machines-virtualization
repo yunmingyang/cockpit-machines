@@ -43,6 +43,7 @@ class TestMachinesVirtualization(machineslib.VirtualMachinesCase):
 
         b.click("#ignore-hw-virtualization-disabled-btn")
 
+        import time;time.sleep(5)
         b.wait_visible("#card-pf-storage-pools")
         b.wait_visible("#card-pf-networks")
         b.wait_visible("#virtual-machines-listing")
@@ -88,7 +89,8 @@ class TestMachinesVirtualization(machineslib.VirtualMachinesCase):
         hack_libvirtd_crash()
         stopLibvirtSocket()
         stopLibvirtService()
-        b.reload()
+        with b.wait_timeout(180):
+            b.reload()
         b.enter_page('/machines')
         waitEmptyState()
         b.click(".pf-v6-c-empty-state button.pf-m-link")  # Troubleshoot

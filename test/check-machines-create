@@ -281,13 +281,14 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
 
         date = datetime.today().strftime('%Y-%-m-%-d')
         connection_name = "system"
-        predicted_name = "fedora28-" + date
+        predicted_name = "centos-stream9-" + date
         runner.createTest(TestMachinesCreate.VmDialog(self, name=predicted_name,
                                                       name_generated=True,
                                                       sourceType='os',
-                                                      storage_size=10, storage_size_unit='MiB',
-                                                      os_name=config.FEDORA_28,
-                                                      os_short_id=config.FEDORA_28_SHORTID,
+                                                      memory_size=3, memory_size_unit='GiB',
+                                                      storage_size=10, storage_size_unit='GiB',
+                                                      os_name=config.CENTOS_STREAM_9,
+                                                      os_short_id=config.CENTOS_STREAM_9_SHORTID,
                                                       connection=connection_name,
                                                       delete=False,
                                                       create_and_run=False))
@@ -299,9 +300,10 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
         predicted_name += "-B"
         runner.createTest(TestMachinesCreate.VmDialog(self, name=predicted_name,
                                                       name_generated=True, sourceType='os',
-                                                      storage_size=10, storage_size_unit='MiB',
-                                                      os_name=config.FEDORA_28,
-                                                      os_short_id=config.FEDORA_28_SHORTID,
+                                                      memory_size=3, memory_size_unit='GiB',
+                                                      storage_size=10, storage_size_unit='GiB',
+                                                      os_name=config.CENTOS_STREAM_9,
+                                                      os_short_id=config.CENTOS_STREAM_9_SHORTID,
                                                       connection=connection_name,
                                                       delete=True,
                                                       create_and_run=False),
@@ -310,13 +312,14 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
         # Generation for user session connection
         # It's possible for 2 VMs with the same name to exist on cifferent connections
         connection_name = "session"
-        predicted_name = "fedora28-" + date
+        predicted_name = "centos-stream9-" + date
         runner.createTest(TestMachinesCreate.VmDialog(self, name=predicted_name,
                                                       name_generated=True,
                                                       sourceType='os',
-                                                      storage_size=10, storage_size_unit='MiB',
-                                                      os_name=config.FEDORA_28,
-                                                      os_short_id=config.FEDORA_28_SHORTID,
+                                                      memory_size=3, memory_size_unit='GiB',
+                                                      storage_size=10, storage_size_unit='GiB',
+                                                      os_name=config.CENTOS_STREAM_9,
+                                                      os_short_id=config.CENTOS_STREAM_9_SHORTID,
                                                       connection=connection_name,
                                                       delete=True,
                                                       create_and_run=False),
@@ -325,6 +328,7 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
     def testCreateCloudBaseImage(self):
         runner = TestMachinesCreate.CreateVmRunner(self)
         config = TestMachinesCreate.TestCreateConfig
+        preparedImage = "/var/lib/libvirt/images/cloudBase.qcow2"
 
         self.login_and_go("/machines")
         self.waitPageInit()
@@ -336,8 +340,9 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
         # try to CREATE few machines
         # --cloud-init user-data option exists since virt-install >= 3.0.0
         runner.createCloudBaseImageTest(TestMachinesCreate.VmDialog(self, sourceType='cloud',
-                                                                    storage_size=10, storage_size_unit='MiB',
-                                                                    location=config.VALID_DISK_IMAGE_PATH,
+                                                                    storage_size=10, storage_size_unit='GiB',
+                                                                    memory_size=2, memory_size_unit='GiB',
+                                                                    location=preparedImage,
                                                                     os_name=config.FEDORA_28,
                                                                     os_short_id=config.FEDORA_28_SHORTID,
                                                                     user_password="catsaremybestfr13nds",
@@ -347,8 +352,9 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
 
         # Create and Edit + Install
         runner.createCloudBaseImageTest(TestMachinesCreate.VmDialog(self, sourceType='cloud',
-                                                                    storage_size=10, storage_size_unit='MiB',
-                                                                    location=config.VALID_DISK_IMAGE_PATH,
+                                                                    storage_size=10, storage_size_unit='GiB',
+                                                                    memory_size=2, memory_size_unit='GiB',
+                                                                    location=preparedImage,
                                                                     os_name=config.FEDORA_28,
                                                                     os_short_id=config.FEDORA_28_SHORTID,
                                                                     user_password="catsaremybestfr13nds",
@@ -359,8 +365,9 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
         # Test using a cloud image without setting the cloud init options
         # https://bugzilla.redhat.com/show_bug.cgi?id=1978206
         runner.createCloudBaseImageTest(TestMachinesCreate.VmDialog(self, sourceType='cloud',
-                                                                    storage_size=10, storage_size_unit='MiB',
-                                                                    location=config.VALID_DISK_IMAGE_PATH,
+                                                                    storage_size=10, storage_size_unit='GiB',
+                                                                    memory_size=2, memory_size_unit='GiB',
+                                                                    location=preparedImage,
                                                                     os_name=config.FEDORA_28,
                                                                     os_short_id=config.FEDORA_28_SHORTID,
                                                                     create_and_run=True))
@@ -374,7 +381,8 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
 
         # Try to create VM with one SSH key
         runner.createCloudBaseImageTest(TestMachinesCreate.VmDialog(self, sourceType='cloud',
-                                                                    storage_size=10, storage_size_unit='MiB',
+                                                                    storage_size=10, storage_size_unit='GiB',
+                                                                    memory_size=2, memory_size_unit='GiB',
                                                                     location=config.VALID_DISK_IMAGE_PATH,
                                                                     os_name=config.FEDORA_28,
                                                                     os_short_id=config.FEDORA_28_SHORTID,
@@ -386,7 +394,8 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
 
         # Try to create VM with a SSH key and without the root and user password
         runner.createCloudBaseImageTest(TestMachinesCreate.VmDialog(self, sourceType='cloud',
-                                                                    storage_size=10, storage_size_unit='MiB',
+                                                                    storage_size=10, storage_size_unit='GiB',
+                                                                    memory_size=2, memory_size_unit='GiB',
                                                                     location=config.VALID_DISK_IMAGE_PATH,
                                                                     os_name=config.FEDORA_28,
                                                                     os_short_id=config.FEDORA_28_SHORTID,
@@ -396,7 +405,8 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
 
         # Try to create VM with a SSH key and root password, also without the user password
         runner.createCloudBaseImageTest(TestMachinesCreate.VmDialog(self, sourceType='cloud',
-                                                                    storage_size=10, storage_size_unit='MiB',
+                                                                    storage_size=10, storage_size_unit='GiB',
+                                                                    memory_size=2, memory_size_unit='GiB',
                                                                     location=config.VALID_DISK_IMAGE_PATH,
                                                                     os_name=config.FEDORA_28,
                                                                     os_short_id=config.FEDORA_28_SHORTID,
@@ -407,7 +417,8 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
 
         # try to create VM with multiple SSH keys
         runner.createCloudBaseImageTest(TestMachinesCreate.VmDialog(self, sourceType='cloud',
-                                                                    storage_size=10, storage_size_unit='MiB',
+                                                                    storage_size=10, storage_size_unit='GiB',
+                                                                    memory_size=2, memory_size_unit='GiB',
                                                                     location=config.VALID_DISK_IMAGE_PATH,
                                                                     os_name=config.FEDORA_28,
                                                                     os_short_id=config.FEDORA_28_SHORTID,
@@ -420,7 +431,8 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
 
         # try to input multiple keys (separated by newline) into one text input
         runner.createCloudBaseImageTest(TestMachinesCreate.VmDialog(self, sourceType='cloud',
-                                                                    storage_size=10, storage_size_unit='MiB',
+                                                                    storage_size=10, storage_size_unit='GiB',
+                                                                    memory_size=2, memory_size_unit='GiB',
                                                                     location=config.VALID_DISK_IMAGE_PATH,
                                                                     os_name=config.FEDORA_28,
                                                                     os_short_id=config.FEDORA_28_SHORTID,
@@ -433,7 +445,8 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
 
         # Try to create VM with invalid ssh key
         runner.createCloudBaseImageTest(TestMachinesCreate.VmDialog(self, sourceType='cloud',
-                                                                    storage_size=10, storage_size_unit='MiB',
+                                                                    storage_size=10, storage_size_unit='GiB',
+                                                                    memory_size=2, memory_size_unit='GiB',
                                                                     location=config.VALID_DISK_IMAGE_PATH,
                                                                     os_name=config.FEDORA_28,
                                                                     os_short_id=config.FEDORA_28_SHORTID,
@@ -458,10 +471,10 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
 
         # try to CREATE few machines
         runner.createDownloadAnOSTest(TestMachinesCreate.VmDialog(self, sourceType='os',
-                                                                  expected_memory_size=128,
-                                                                  expected_storage_size=128,
-                                                                  os_name=config.FEDORA_28,
-                                                                  os_short_id=config.FEDORA_28_SHORTID,
+                                                                  expected_memory_size=1.5,
+                                                                  expected_storage_size=10,
+                                                                  os_name=config.CENTOS_STREAM_9,
+                                                                  os_short_id=config.CENTOS_STREAM_9_SHORTID,
                                                                   create_and_run=True))
 
         runner.createDownloadAnOSTest(TestMachinesCreate.VmDialog(self, sourceType='os',
@@ -469,34 +482,37 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
                                                                   user_password="catsaremybestfr13nds",
                                                                   user_login="foo",
                                                                   root_password="dogsaremybestfr13nds",
-                                                                  storage_size=246, storage_size_unit='MiB',
-                                                                  os_name=config.FEDORA_28,
-                                                                  os_short_id=config.FEDORA_28_SHORTID))
+                                                                  storage_size=10, storage_size_unit='GiB',
+                                                                  memory_size=2, memory_size_unit='GiB',
+                                                                  os_name=config.CENTOS_STREAM_9,
+                                                                  os_short_id=config.CENTOS_STREAM_9_SHORTID))
 
         # Don't create root account
         runner.createDownloadAnOSTest(TestMachinesCreate.VmDialog(self, sourceType='os',
                                                                   is_unattended=True, profile="desktop",
                                                                   user_login="foo",
                                                                   user_password="catsaremybestfr13nds",
-                                                                  storage_size=256, storage_size_unit='MiB',
-                                                                  os_name=config.FEDORA_28,
-                                                                  os_short_id=config.FEDORA_28_SHORTID))
+                                                                  storage_size=10, storage_size_unit='GiB',
+                                                                  memory_size=2, memory_size_unit='GiB',
+                                                                  os_name=config.CENTOS_STREAM_9,
+                                                                  os_short_id=config.CENTOS_STREAM_9_SHORTID))
 
         # Don't create user account
         runner.createDownloadAnOSTest(TestMachinesCreate.VmDialog(self, sourceType='os',
                                                                   is_unattended=True, profile="jeos",
                                                                   root_password="catsaremybestfr13nds",
-                                                                  storage_size=256, storage_size_unit='MiB',
-                                                                  os_name=config.FEDORA_28,
-                                                                  os_short_id=config.FEDORA_28_SHORTID))
+                                                                  storage_size=10, storage_size_unit='GiB',
+                                                                  memory_size=2, memory_size_unit='GiB',
+                                                                  os_name=config.CENTOS_STREAM_9,
+                                                                  os_short_id=config.CENTOS_STREAM_9_SHORTID))
 
         # name already used from a VM that is currently being created
         # https://bugzilla.redhat.com/show_bug.cgi?id=1780451
         runner.createDownloadAnOSTest(TestMachinesCreate.VmDialog(self, name='existing-name', sourceType='os',
-                                                                  expected_memory_size=128,
-                                                                  expected_storage_size=128,
-                                                                  os_name=config.FEDORA_28,
-                                                                  os_short_id=config.FEDORA_28_SHORTID,
+                                                                  expected_memory_size=1.5,
+                                                                  expected_storage_size=10,
+                                                                  os_name=config.CENTOS_STREAM_9,
+                                                                  os_short_id=config.CENTOS_STREAM_9_SHORTID,
                                                                   create_and_run=True, delete=False))
 
         runner.checkDialogFormValidationTest(TestMachinesCreate.VmDialog(self, "existing-name", storage_size=1,
@@ -545,7 +561,8 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
         self.add_veth(iface)
 
         # We don't handle events for networks yet, so reload the page to refresh the state
-        b.reload()
+        with self.browser.wait_timeout(180):
+            self.browser.reload()
         b.enter_page('/machines')
         self.waitPageInit()
 
@@ -589,8 +606,8 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
                 p.remove(element)
 
         # Set useserial attribute for bios os element
-        bios = ET.SubElement(root.find('os'), 'bios')
-        bios.set('useserial', 'yes')
+        # bios = ET.SubElement(root.find('os'), 'bios')
+        # bios.set('useserial', 'yes')
 
         # Add a serial console of type file
         console = ET.fromstring(m.execute("virt-xml --build --console file,path=/tmp/serial.txt,target_type=serial"))
@@ -607,11 +624,13 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
         m.execute("virsh start pxe-guest")
 
         # The file is full of ANSI control characters in between every letter, filter them out
-        cmd = r"sed 's,\x1B\[[0-9;]*[a-zA-Z],,g' /tmp/serial.txt | grep 'Rebooting in 60'"
+        # cmd = r"sed 's,\x1B\[[0-9;]*[a-zA-Z],,g' /tmp/serial.txt | grep 'Rebooting in 60'"
+        cmd = "cat /tmp/serial.txt | grep 'Network loading done, starting kernel'"
         testlib.wait(lambda: self.machine.execute(cmd), delay=3)
         self.goToMainPage()
 
-        m.execute("virsh destroy pxe-guest")
+        # s390x: In s390x, the VM will be destroyed automatically
+        # m.execute("virsh destroy pxe-guest")
         m.execute("virsh undefine pxe-guest")
         runner.checkEnvIsEmpty()
 
@@ -632,36 +651,37 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
         b.wait_in_text("#vm-pxe-guest-boot-order", "disk")
         b.wait_not_in_text("#vm-pxe-guest-boot-order", "network")
 
-    def testCreateAndVerifyQemuConf(self):
-        runner = TestMachinesCreate.CreateVmRunner(self)
-        config = TestMachinesCreate.TestCreateConfig
-        m = self.machine
+#     # s390x: spice is not support
+#     def testCreateAndVerifyQemuConf(self):
+#         runner = TestMachinesCreate.CreateVmRunner(self)
+#         config = TestMachinesCreate.TestCreateConfig
+#         m = self.machine
 
-        self.restore_file("/etc/libvirt/qemu.conf")
+#         self.restore_file("/etc/libvirt/qemu.conf")
 
-        self.login_and_go("/machines")
-        self.waitPageInit()
+        # self.login_and_go("/machines")
+        # self.waitPageInit()
 
-        vnc_listen = "192.168.2.6"
-        vnc_passwd = "mypass"
+#         vnc_listen = "192.168.2.6"
+#         vnc_passwd = "mypass"
 
-        m.write("/etc/libvirt/qemu.conf", f'''vnc_listen = "{vnc_listen}"
-vnc_password= "{vnc_passwd}"
-''', append=True)
+#         m.write("/etc/libvirt/qemu.conf", f'''vnc_listen = "{vnc_listen}"
+# vnc_password= "{vnc_passwd}"
+# ''', append=True)
 
-        runner.createAndVerifyQemuConfParsedTest(
-            TestMachinesCreate.VmDialog(self, sourceType='file',
-                                        storage_pool=NO_STORAGE,
-                                        location=config.NOVELL_MOCKUP_ISO_PATH),
-            vnc_listen, "::1", vnc_passwd, None)
+        # runner.createAndVerifyQemuConfParsedTest(
+        #     TestMachinesCreate.VmDialog(self, sourceType='file',
+        #                                 storage_pool=NO_STORAGE,
+        #                                 location=config.NOVELL_MOCKUP_ISO_PATH),
+        #     vnc_listen, "::1", vnc_passwd, None)
 
-        # Ensure that missing qemu.conf would not crash the script but just pick the 127.0.0.1 default value
-        m.execute("rm /etc/libvirt/qemu.conf")
-        runner.createAndVerifyQemuConfParsedTest(
-            TestMachinesCreate.VmDialog(self, sourceType='file',
-                                        storage_pool=NO_STORAGE,
-                                        location=config.NOVELL_MOCKUP_ISO_PATH),
-            "127.0.0.1", "::1", None, None)
+        # # Ensure that missing qemu.conf would not crash the script but just pick the 127.0.0.1 default value
+        # m.execute("rm /etc/libvirt/qemu.conf")
+        # runner.createAndVerifyQemuConfParsedTest(
+        #     TestMachinesCreate.VmDialog(self, sourceType='file',
+        #                                 storage_pool=NO_STORAGE,
+        #                                 location=config.NOVELL_MOCKUP_ISO_PATH),
+        #     "127.0.0.1", "::1", None, None)
 
     @testlib.skipImage("TODO: Arch Linux has no iscsi support", "arch")
     @testlib.skipImage("TODO: fails in 80% of runs", "opensuse-tumbleweed")
@@ -704,7 +724,8 @@ vnc_password= "{vnc_passwd}"
 
             self.addCleanup(self.machine.execute, "virsh pool-destroy iscsi-pool; virsh pool-undefine iscsi-pool")
 
-            self.browser.reload()
+            with self.browser.wait_timeout(180):
+                self.browser.reload()
             self.browser.enter_page('/machines')
             self.waitPageInit()
 
@@ -762,8 +783,10 @@ vnc_password= "{vnc_passwd}"
         self.machine.execute("virsh pool-define-as default --type dir --target /var/lib/libvirt/images")
         self.machine.execute("virsh pool-start default")
 
-        self.browser.reload()
-        self.browser.enter_page('/machines')
+        with self.browser.wait_timeout(180):
+            self.browser.reload()
+        with self.browser.wait_timeout(600):
+            self.browser.enter_page('/machines')
         self.waitPageInit()
 
         runner.createTest(TestMachinesCreate.VmDialog(self, sourceType='file',
@@ -781,7 +804,8 @@ vnc_password= "{vnc_passwd}"
         ]
         self.machine.execute("; ".join(cmds))
 
-        self.browser.reload()
+        with self.browser.wait_timeout(180):
+            self.browser.reload()
         self.browser.enter_page('/machines')
         self.waitPageInit()
 
@@ -800,7 +824,7 @@ vnc_password= "{vnc_passwd}"
                                                       storage_pool=NO_STORAGE,
                                                       create_and_run=True,))
 
-        self.machine.execute(f"touch '{config.PATH_WITH_SPACE}'")
+        self.machine.execute(f"cp /var/lib/libvirt/images/test.iso '{config.PATH_WITH_SPACE}'")
         # Check file with empty space
         runner.createTest(TestMachinesCreate.VmDialog(self, sourceType='file',
                                                       location=config.PATH_WITH_SPACE,
@@ -824,6 +848,7 @@ vnc_password= "{vnc_passwd}"
                                                       storage_pool=NEW_VOLUME_RAW,
                                                       create_and_run=True,))
 
+    # 128MB memory will cause VM shutoff immediately after clicking "Run" and VM status is changed to "Run"
     def testCreateImportDisk(self):
         runner = TestMachinesCreate.CreateVmRunner(self)
         config = TestMachinesCreate.TestCreateConfig
@@ -833,23 +858,23 @@ vnc_password= "{vnc_passwd}"
 
         runner.createTest(TestMachinesCreate.VmDialog(self, sourceType='disk_image',
                                                       location=config.VALID_DISK_IMAGE_PATH,
-                                                      memory_size=128, memory_size_unit='MiB',
+                                                      memory_size=1024, memory_size_unit='MiB',
                                                       create_and_run=False))
 
         # Recreate the image the previous test just deleted to reuse it
-        self.machine.execute(f"qemu-img create {TestMachinesCreate.TestCreateConfig.VALID_DISK_IMAGE_PATH} 500M")
+        # self.machine.execute("cp /var/lib/libvirt/images/cloudBase.qcow2 {}".format(TestMachinesCreate.TestCreateConfig.VALID_DISK_IMAGE_PATH))
 
         # Unload KVM module, otherwise we get errors getting the nested VMs
         # to start properly.
         # This is applicable for all tests that we want to really successfully run a nested VM.
         # in order to allow the rest of the tests to run faster with QEMU KVM
         # Stop pmcd service if available which is invoking pmdakvm and is keeping KVM module used
-        self.machine.execute("systemctl stop pmcd || true; modprobe -r kvm_intel kvm_amd kvm")
+        # self.machine.execute("(systemctl stop pmcd || true) && modprobe -r kvm_intel && modprobe -r kvm_amd && modprobe -r kvm")
 
-        runner.createTest(TestMachinesCreate.VmDialog(self, sourceType='disk_image',
-                                                      location=config.VALID_DISK_IMAGE_PATH,
-                                                      memory_size=128, memory_size_unit='MiB',
-                                                      create_and_run=True))
+        # runner.createTest(TestMachinesCreate.VmDialog(self, sourceType='disk_image',
+        #                                               location=config.VALID_DISK_IMAGE_PATH,
+        #                                               memory_size=1024, memory_size_unit='MiB',
+        #                                               create_and_run=True))
 
     def testCreateUrlSource(self):
         m = self.machine
@@ -917,11 +942,13 @@ vnc_password= "{vnc_passwd}"
 
         # Test detection of ISO file in URL; HACK: unpredictable behaviour,
         # the "failed to install" alert sometimes appears, sometimes not; so run this last
-        runner.createTest(TestMachinesCreate.VmDialog(self, sourceType='url',
-                                                      location=config.ISO_URL,
-                                                      memory_size=128, memory_size_unit='MiB',
-                                                      storage_pool=NO_STORAGE,
-                                                      create_and_run=True))
+        # s390x: use a real URL for the running VM
+        # s390x: Unknown driver 'https'
+        # runner.createTest(TestMachinesCreate.VmDialog(self, sourceType='url',
+        #                                               location="https://dl-cdn.alpinelinux.org/alpine/v3.15/releases/s390x/alpine-standard-3.15.4-s390x.iso",
+        #                                               memory_size=256, memory_size_unit='MiB',
+        #                                               storage_pool=NO_STORAGE,
+        #                                               create_and_run=True))
         # lots of OSes don't have a qemu-block https driver
         self.allow_browser_errors("spawn 'vm creation' returned error.*Unknown driver 'https'")
 
@@ -935,7 +962,8 @@ vnc_password= "{vnc_passwd}"
         self.machine.execute(f'mount -o bind /dev/null {virt_install_bin}')
         self.addCleanup(self.machine.execute, f"umount {virt_install_bin}")
 
-        self.browser.reload()
+        with self.browser.wait_timeout(180):
+            self.browser.reload()
         self.browser.enter_page('/machines')
         self.browser.wait_visible("#create-new-vm:disabled")
         # There are many reasons why the button would be disabled, so check if it's correct one
@@ -967,6 +995,8 @@ vnc_password= "{vnc_passwd}"
 
         CENTOS_7 = 'CentOS 7'
 
+        CENTOS_STREAM_9 = 'CentOS Stream 9'
+        CENTOS_STREAM_9_SHORTID = 'centos-stream9'
     class VmDialog:
         vmId = 0
 
@@ -1366,13 +1396,14 @@ vnc_password= "{vnc_passwd}"
                     user_login = virt_install_cmd_out.split("user-login=", 1)[1].split(",")[0].rstrip()
                     self.assertIn(user_login, self.user_login)
 
+            # s390x: skip
             # HACK: on some OSes we need to wait for virt-install to
             # exit; on others, it wont ever exit but that's fine as
             # well.  (On some OSes the created VM crashes in the
             # kernel, on others, the BIOS can't find a bootable
             # device. Maybe that's the difference.)
-            if self.create_and_run and self.machine.image.startswith(('opensuse-tumbleweed', 'centos-10', 'rhel-10')):
-                self.machine.execute(f"while {virt_install_cmd}; do sleep 1; done", timeout=300)
+            # if self.create_and_run and self.machine.image.startswith(('opensuse-tumbleweed', 'centos-10', 'rhel-10')):
+            #     self.machine.execute(f"while {virt_install_cmd}; do sleep 1; done", timeout=300)
 
         def fill(self):
             b = self.browser
@@ -1611,8 +1642,8 @@ vnc_password= "{vnc_passwd}"
             self.test_obj = test_obj
             self.run_admin = test_obj.run_admin
 
-            self.machine.execute(f"touch {TestMachinesCreate.TestCreateConfig.NOVELL_MOCKUP_ISO_PATH}")
-            self.machine.execute(f"qemu-img create {TestMachinesCreate.TestCreateConfig.VALID_DISK_IMAGE_PATH} 500M")
+            self.machine.execute(f"cp /var/lib/libvirt/images/test.iso {TestMachinesCreate.TestCreateConfig.NOVELL_MOCKUP_ISO_PATH}")
+            self.machine.execute(f"cp /var/lib/libvirt/images/cloudBase.qcow2 {TestMachinesCreate.TestCreateConfig.VALID_DISK_IMAGE_PATH}")
             test_obj.addCleanup(
                 test_obj.machine.execute,
                 f"rm -f {TestMachinesCreate.TestCreateConfig.NOVELL_MOCKUP_ISO_PATH} "
@@ -1826,6 +1857,7 @@ vnc_password= "{vnc_passwd}"
         def _deleteVm(self, dialog):
             b = self.browser
 
+            time.sleep(2)
             self.test_obj.performAction(dialog.name, "delete", connectionName=dialog.connection)
             b.wait_visible(f"#vm-{dialog.name}-delete-modal-dialog")
             b.click(f"#vm-{dialog.name}-delete-modal-dialog button:contains(Delete)")
@@ -2140,9 +2172,10 @@ vnc_password= "{vnc_passwd}"
         b.click(".pf-v6-c-modal-box__footer button:contains(Create and edit)")
         b.wait_not_present("#create-vm-dialog")
 
-        testlib.wait(lambda: "<cockpit_machines:os_variant>fedora28</cockpit_machines:os_variant>"
+        testlib.wait(lambda: "<cockpit_machines:os_variant>alpinelinux3.18</cockpit_machines:os_variant>"
                      in m.execute("virsh dumpxml VmNotInstalled"),
-                     delay=3)
+                     delay=3,
+                     tries=5)
 
         self.waitVmPage("VmNotInstalled")
 
@@ -2158,14 +2191,15 @@ vnc_password= "{vnc_passwd}"
         b.click("#vm-VmNotInstalled-memory-modal-save")
         b.wait_not_present(".pf-v6-c-modal-box__body")
 
+        # s390x: S390 does not support more than 1 threads.
         # Change vCPUs setting
         b.click("#vm-VmNotInstalled-cpu button")
         b.wait_visible(".pf-v6-c-modal-box__body")
         b.set_input_text("#machines-vcpu-max-field input", "8")
         b.set_input_text("#machines-vcpu-count-field input", "2")
         b.select_from_dropdown("#socketsSelect", "2")
-        b.select_from_dropdown("#coresSelect", "2")
-        b.select_from_dropdown("#threadsSelect", "2")
+        b.select_from_dropdown("#coresSelect", "4")
+        b.select_from_dropdown("#threadsSelect", "1")
         b.click("#machines-cpu-modal-dialog-apply")
         b.wait_not_present(".pf-v6-c-modal-box__body")
 
@@ -2181,63 +2215,66 @@ vnc_password= "{vnc_passwd}"
         # Attach some interface
         m.execute("virsh attach-interface --persistent VmNotInstalled bridge virbr0")
 
+        # s390x will show "Unknown firmware" on its firmware as there is no edk2/OVMF value
+        b.wait_in_text("#vm-VmNotInstalled-firmware", "Unknown firmware")
         # BIOS machine doesn't have TPM by default
-        self.assertNotIn("tpm", m.execute("virsh dumpxml VmNotInstalled"))
+        # self.assertNotIn("tpm", m.execute("virsh dumpxml VmNotInstalled"))
 
         # Change the os boot firmware configuration
-        b.wait_in_text("#vm-VmNotInstalled-firmware", "BIOS")
-        b.click("#vm-VmNotInstalled-firmware")
-        b.wait_visible(".pf-v6-c-modal-box__body")
-        b.select_from_dropdown(".pf-v6-c-modal-box__body select", "efi")
-        b.click("#firmware-dialog-apply")
-        # ack error message if adding TPM failed
-        if machineslib.hasBrokenTPM(m.image):
-            b.wait_in_text(".pf-v6-c-modal-box .pf-v6-c-alert", "Failed to change firmware")
-            b.wait_in_text(".pf-v6-c-modal-box .pf-v6-c-alert", "TPM")
-            b.click('.pf-v6-c-modal-box__footer button:contains("Cancel")')
-        b.wait_not_present(".pf-v6-c-modal-box__body")
-        b.wait_in_text("#vm-VmNotInstalled-firmware", "UEFI")
-        self.assertIn("<os firmware='efi'>", m.execute("virsh dumpxml VmNotInstalled"))
+        # b.wait_in_text("#vm-VmNotInstalled-firmware", "BIOS")
+        # b.click("#vm-VmNotInstalled-firmware")
+        # b.wait_visible(".pf-v6-c-modal-box__body")
+        # b.select_from_dropdown(".pf-v6-c-modal-box__body select", "efi")
+        # b.click("#firmware-dialog-apply")
+        # # ack error message if adding TPM failed
+        # if machineslib.hasBrokenTPM(m.image):
+        #     b.wait_in_text(".pf-v6-c-modal-box .pf-v6-c-alert", "Failed to change firmware")
+        #     b.wait_in_text(".pf-v6-c-modal-box .pf-v6-c-alert", "TPM")
+        #     b.click('.pf-v6-c-modal-box__footer button:contains("Cancel")')
+        # b.wait_not_present(".pf-v6-c-modal-box__body")
+        # b.wait_in_text("#vm-VmNotInstalled-firmware", "UEFI")
+        # self.assertIn("<os firmware='efi'>", m.execute("virsh dumpxml VmNotInstalled"))
 
-        # auto-enabled software TPM
-        if not machineslib.hasBrokenTPM(m.image):
-            tpm_xml = m.execute("virsh dumpxml VmNotInstalled | xmllint --xpath /domain/devices/tpm -")
-            self.assertIn('model="tpm-crb"', tpm_xml)
-            self.assertIn('type="emulator"', tpm_xml)
-            # thus menu does not offer to add a TPM
-            b.click("#vm-VmNotInstalled-system-action-kebab")
-            b.wait_visible("#vm-VmNotInstalled-system-delete")
-            self.assertNotIn("Add TPM", b.text("ul.pf-v6-c-menu__list"))
-            b.click("#vm-VmNotInstalled-system-action-kebab")
-            b.wait_not_present("ul.pf-v6-c-menu__list")
+        # # auto-enabled software TPM
+        # if not machineslib.hasBrokenTPM(m.image):
+        #     tpm_xml = m.execute("virsh dumpxml VmNotInstalled | xmllint --xpath /domain/devices/tpm -")
+        #     self.assertIn('model="tpm-crb"', tpm_xml)
+        #     self.assertIn('type="emulator"', tpm_xml)
+        #     # thus menu does not offer to add a TPM
+        #     b.click("#vm-VmNotInstalled-system-action-kebab")
+        #     b.wait_visible("#vm-VmNotInstalled-system-delete")
+        #     self.assertNotIn("Add TPM", b.text("ul.pf-v6-c-menu__list"))
+        #     b.click("#vm-VmNotInstalled-system-action-kebab")
+        #     b.wait_not_present("ul.pf-v6-c-menu__list")
 
         # Temporarily delete the OVMF binary and check the firmware options again
-        if "fedora" in m.image or "rhel" in m.image or "centos" in m.image:
-            ovmf_path = "/usr/share/edk2"
-        elif "debian" in m.image or "ubuntu" in m.image:
-            ovmf_path = "/usr/share/OVMF"
-        elif "arch" in m.image:
-            ovmf_path = "/usr/share/edk2-ovmf"
-        elif "suse" in m.image:
-            ovmf_path = "/usr/share/qemu"
-        else:
-            raise AssertionError("Unhandled distro for OVMF path")
+        # if "fedora" in m.image or "rhel" in m.image or "centos" in m.image:
+        #     ovmf_path = "/usr/share/edk2"
+        # elif "debian" in m.image or "ubuntu" in m.image:
+        #     ovmf_path = "/usr/share/OVMF"
+        # elif "arch" in m.image:
+        #     ovmf_path = "/usr/share/edk2-ovmf"
+        # elif "suse" in m.image:
+        #     ovmf_path = "/usr/share/qemu"
+        # else:
+        #     raise AssertionError("Unhandled distro for OVMF path")
 
-        m.execute("mount -t tmpfs tmpfs " + ovmf_path)
-        self.addCleanup(m.execute, f"if mountpoint {ovmf_path}; then umount {ovmf_path}; fi")
+        # m.execute("mount -t tmpfs tmpfs " + ovmf_path)
+        # self.addCleanup(m.execute, f"if mountpoint {ovmf_path}; then umount {ovmf_path}; fi")
 
-        # Reload for the new configuration to be read
-        b.reload()
-        b.enter_page('/machines')
+        # # Reload for the new configuration to be read
+        # b.reload()
+        # b.enter_page('/machines')
 
         b.mouse("#vm-VmNotInstalled-firmware-tooltip", "mouseenter")
         b.wait_in_text(".pf-v6-c-tooltip",
                        "Libvirt did not detect any UEFI/OVMF firmware image installed on the host")
         b.mouse("#vm-VmNotInstalled-firmware-tooltip", "mouseleave")
         b.wait_not_present("#missing-uefi-images")
-        m.execute("umount " + ovmf_path)
+        # m.execute("umount " + ovmf_path)
 
         # Install the VM
+        time.sleep(5)
         b.click("#vm-VmNotInstalled-system-install")
 
         # Wait for virt-install to define the VM and then stop it,
@@ -2246,6 +2283,8 @@ vnc_password= "{vnc_passwd}"
         b.wait_in_text("#vm-VmNotInstalled-system-state", "Running")
         logfile = "/var/log/libvirt/qemu/VmNotInstalled.log"
         m.execute(f"> {logfile}")  # clear logfile
+        # Sleep for avoiding page is redirected
+        time.sleep(5)
         self.performAction("VmNotInstalled", "forceOff", checkExpectedState=False)
         b.wait_in_text("#vm-VmNotInstalled-system-state", "Shut off")
         # Wait until memory parameters get adjusted after shutting the VM
@@ -2267,16 +2306,17 @@ vnc_password= "{vnc_passwd}"
         b.wait_val("#machines-vcpu-max-field input", "8")
         b.wait_val("#machines-vcpu-count-field input", "2")
         b.wait_val("#socketsSelect", "2")
-        b.wait_val("#coresSelect", "2")
-        b.wait_val("#threadsSelect", "2")
+        b.wait_val("#coresSelect", "4")
+        b.wait_val("#threadsSelect", "1")
         b.click("#machines-cpu-modal-dialog-cancel")
         b.wait_not_present(".pf-v6-c-modal-box__body")
 
         # Check changed boot order have persisted
         b.wait_text_not("#vm-VmNotInstalled-boot-order", bootOrder)
 
+        # For s390x, it is "Unknown firmware"
         # Check firmware changes persisted
-        b.wait_in_text("#vm-VmNotInstalled-firmware", "UEFI")
+        b.wait_in_text("#vm-VmNotInstalled-firmware", "Unknown firmware")
 
         # Check autostart have persisted
         self.assertEqual(b.get_checked("#vm-VmNotInstalled-autostart-switch"), autostart)
@@ -2311,14 +2351,16 @@ vnc_password= "{vnc_passwd}"
 
         self.waitVmPage("VmNotInstalledBios")
 
-        # Show and keep the os boot firmware configuration
-        b.wait_in_text("#vm-VmNotInstalledBios-firmware", "BIOS")
-        b.click("#vm-VmNotInstalledBios-firmware")
-        b.wait_visible(".pf-v6-c-modal-box__body")
-        b.wait_val(".pf-v6-c-modal-box__body select", "bios")
-        b.click("#firmware-dialog-apply")
-        b.wait_not_present(".pf-v6-c-modal-box__body")
-        b.wait_in_text("#vm-VmNotInstalledBios-firmware", "BIOS")
+        # s390x: unknown firmware
+        b.wait_in_text("#vm-VmNotInstalledBios-firmware", "Unknown firmware")
+        # # Show and keep the os boot firmware configuration
+        # b.wait_in_text("#vm-VmNotInstalledBios-firmware", "BIOS")
+        # b.click("#vm-VmNotInstalledBios-firmware")
+        # b.wait_visible(".pf-v6-c-modal-box__body")
+        # b.wait_val(".pf-v6-c-modal-box__body select", "bios")
+        # b.click("#firmware-dialog-apply")
+        # b.wait_not_present(".pf-v6-c-modal-box__body")
+        # b.wait_in_text("#vm-VmNotInstalledBios-firmware", "BIOS")
 
         # Install the VM
         b.click("#vm-VmNotInstalledBios-system-install")
@@ -2329,82 +2371,82 @@ vnc_password= "{vnc_passwd}"
         self.assertIn("<os>", domainXML)
         self.assertNotIn("efi", domainXML)
 
-    def testConfigureBeforeInstallBiosTPM(self):
-        m = self.machine
-        b = self.browser
-        TestMachinesCreate.CreateVmRunner(self)
+    # def testConfigureBeforeInstallBiosTPM(self):
+    #     m = self.machine
+    #     b = self.browser
+    #     TestMachinesCreate.CreateVmRunner(self)
 
-        # create VM with BIOS
-        vmName = "subVmTest1"
-        self.login_and_go("/machines")
-        self.waitPageInit()
-        dialog = TestMachinesCreate.VmDialog(self, sourceType='file',
-                                             name=vmName,
-                                             location=TestMachinesCreate.TestCreateConfig.NOVELL_MOCKUP_ISO_PATH,
-                                             memory_size=128, memory_size_unit='MiB',
-                                             storage_size=256, storage_size_unit='MiB',
-                                             create_and_run=False)
-        dialog.open().fill()
-        b.click(".pf-v6-c-modal-box__footer #create-and-edit")
-        b.wait_not_present("#create-vm-dialog")
-        b.wait_in_text(f"#vm-{vmName}-firmware", "BIOS")
+    #     # create VM with BIOS
+    #     vmName = "subVmTest1"
+    #     self.login_and_go("/machines")
+    #     self.waitPageInit()
+    #     dialog = TestMachinesCreate.VmDialog(self, sourceType='file',
+    #                                          name=vmName,
+    #                                          location=TestMachinesCreate.TestCreateConfig.NOVELL_MOCKUP_ISO_PATH,
+    #                                          memory_size=128, memory_size_unit='MiB',
+    #                                          storage_size=256, storage_size_unit='MiB',
+    #                                          create_and_run=False)
+    #     dialog.open().fill()
+    #     b.click(".pf-v6-c-modal-box__footer #create-and-edit")
+    #     b.wait_not_present("#create-vm-dialog")
+    #     b.wait_in_text(f"#vm-{vmName}-firmware", "BIOS")
 
-        # add TPM to VM
-        self.assertNotIn("tpm", m.execute(f"virsh dumpxml {vmName}"))
-        self.performAction(vmName, "add-tpm")
+    #     # add TPM to VM
+    #     self.assertNotIn("tpm", m.execute(f"virsh dumpxml {vmName}"))
+    #     self.performAction(vmName, "add-tpm")
 
-        if machineslib.hasBrokenTPM(m.image):
-            error_location = ".pf-v6-c-alert-group li .pf-v6-c-alert"
-            b.wait_in_text(error_location, f"Failed to add TPM to VM {vmName}")
-            b.wait_in_text("button.alert-link.more-button", "show more")
-            b.click("button.alert-link.more-button")
-            b.wait_in_text(error_location, "unsupported configuration")
-            # Close the notification
-            b.click(".pf-v6-c-alert-group li .pf-v6-c-alert button.pf-m-plain")
-            b.wait_not_present(".pf-v6-c-alert-group li .pf-v6-c-alert")
-        else:
-            testlib.wait(lambda: "tpm" in m.execute(f"virsh dumpxml {vmName}"))
+    #     if machineslib.hasBrokenTPM(m.image):
+    #         error_location = ".pf-v6-c-alert-group li .pf-v6-c-alert"
+    #         b.wait_in_text(error_location, f"Failed to add TPM to VM {vmName}")
+    #         b.wait_in_text("button.alert-link.more-button", "show more")
+    #         b.click("button.alert-link.more-button")
+    #         b.wait_in_text(error_location, "unsupported configuration")
+    #         # Close the notification
+    #         b.click(".pf-v6-c-alert-group li .pf-v6-c-alert button.pf-m-plain")
+    #         b.wait_not_present(".pf-v6-c-alert-group li .pf-v6-c-alert")
+    #     else:
+    #         testlib.wait(lambda: "tpm" in m.execute(f"virsh dumpxml {vmName}"))
 
-            # "Add TPM" action goes away (async); no other visual feedback for non-running VM
-            for _retry in range(10):
-                time.sleep(0.2)
-                b.click(f"#vm-{vmName}-system-action-kebab")
-                b.wait_visible(f"#vm-{vmName}-system-delete")
-                menu = b.text("ul.pf-v6-c-menu__list")
-                b.click(f"#vm-{vmName}-system-action-kebab")
-                b.wait_not_present("ul.pf-v6-c-menu__list")
-                if "Add TPM" not in menu:
-                    break
-            else:
-                self.fail("timed out waiting for Add TPM menu item removal")
+    #         # "Add TPM" action goes away (async); no other visual feedback for non-running VM
+    #         for _retry in range(10):
+    #             time.sleep(0.2)
+    #             b.click(f"#vm-{vmName}-system-action-kebab")
+    #             b.wait_visible(f"#vm-{vmName}-system-delete")
+    #             menu = b.text("ul.pf-v6-c-menu__list")
+    #             b.click(f"#vm-{vmName}-system-action-kebab")
+    #             b.wait_not_present("ul.pf-v6-c-menu__list")
+    #             if "Add TPM" not in menu:
+    #                 break
+    #         else:
+    #             self.fail("timed out waiting for Add TPM menu item removal")
 
-        # Change the os boot firmware to EFI
-        b.click(f"#vm-{vmName}-firmware")
-        b.wait_visible(".pf-v6-c-modal-box__body")
-        b.select_from_dropdown(".pf-v6-c-modal-box__body select", "efi")
-        b.click("#firmware-dialog-apply")
-        # ack error message if adding TPM failed
-        if machineslib.hasBrokenTPM(m.image):
-            b.wait_in_text(".pf-v6-c-modal-box .pf-v6-c-alert", "Failed to change firmware")
-            b.wait_in_text(".pf-v6-c-modal-box .pf-v6-c-alert", "TPM")
-            b.click('.pf-v6-c-modal-box__footer button:contains("Cancel")')
-        b.wait_not_present(".pf-v6-c-modal-box__body")
-        b.wait_in_text(f"#vm-{vmName}-firmware", "UEFI")
+    #     # Change the os boot firmware to EFI
+    #     b.click(f"#vm-{vmName}-firmware")
+    #     b.wait_visible(".pf-v6-c-modal-box__body")
+    #     b.select_from_dropdown(".pf-v6-c-modal-box__body select", "efi")
+    #     b.click("#firmware-dialog-apply")
+    #     # ack error message if adding TPM failed
+    #     if machineslib.hasBrokenTPM(m.image):
+    #         b.wait_in_text(".pf-v6-c-modal-box .pf-v6-c-alert", "Failed to change firmware")
+    #         b.wait_in_text(".pf-v6-c-modal-box .pf-v6-c-alert", "TPM")
+    #         b.click('.pf-v6-c-modal-box__footer button:contains("Cancel")')
+    #     b.wait_not_present(".pf-v6-c-modal-box__body")
+    #     b.wait_in_text(f"#vm-{vmName}-firmware", "UEFI")
 
-        if machineslib.hasBrokenTPM(m.image):
-            self.assertNotIn("tpm", m.execute(f"virsh dumpxml {vmName}"))
-        else:
-            # did not add a second TPM; that would fail in the dialog anyway, but let's double-check the backend
-            out = m.execute(f"virsh dumpxml {vmName} | xmllint --xpath /domain/devices/tpm - | grep --count '<tpm'")
-            self.assertEqual(out.strip(), "1")
+    #     if machineslib.hasBrokenTPM(m.image):
+    #         self.assertNotIn("tpm", m.execute(f"virsh dumpxml {vmName}"))
+    #     else:
+    #         # did not add a second TPM; that would fail in the dialog anyway, but let's double-check the backend
+    #         out = m.execute(f"virsh dumpxml {vmName} | xmllint --xpath /domain/devices/tpm - | grep --count '<tpm'")
+    #         self.assertEqual(out.strip(), "1")
 
-        # Install the VM
-        b.click(f"#vm-{vmName}-system-install")
-        b.wait_in_text(f"#vm-{vmName}-system-state", "Running")
+    #     # Install the VM
+    #     b.click(f"#vm-{vmName}-system-install")
+    #     b.wait_in_text(f"#vm-{vmName}-system-state", "Running")
 
-        # https://launchpad.net/bugs/1968187
-        if m.image == 'debian-stable':
-            self.allow_journal_messages('.*apparmor="DENIED".*name="/etc/ssl/openssl.cnf".*comm="swtpm".*')
+        # # https://launchpad.net/bugs/1968187
+        # if m.image == 'debian-stable':
+        #     self.allow_journal_messages('.*apparmor="DENIED".*name="/etc/ssl/openssl.cnf".*comm="swtpm".*')
 
     def testCreateDownloadRhel(self):
         runner = TestMachinesCreate.CreateVmRunner(self, rhel_download=True)
@@ -2457,21 +2499,22 @@ vnc_password= "{vnc_passwd}"
 
         m.execute("rm /var/lib/libvirt/images/rhel-8-1-boot.iso")
 
-        runner.createTest(TestMachinesCreate.VmDialog(self, sourceType='os',
-                                                      os_name=config.RHEL_8_1,
-                                                      os_short_id=config.RHEL_8_1_SHORTID,
-                                                      offline_token="valid_token",
-                                                      offline_token_autofilled=True,
-                                                      create_and_run=True))
+        # For s390x, the VM with fake image will be shut off if running it
+        # runner.createTest(TestMachinesCreate.VmDialog(self, sourceType='os',
+        #                                               os_name=config.RHEL_8_1,
+        #                                               os_short_id=config.RHEL_8_1_SHORTID,
+        #                                               offline_token="valid_token",
+        #                                               offline_token_autofilled=True,
+        #                                               create_and_run=True))
 
-        # If run on different connection, the downloaded iso should be stored in ~/.local/share/libvirt/images/
-        runner.createTest(TestMachinesCreate.VmDialog(self, sourceType='os',
-                                                      os_name=config.RHEL_8_1,
-                                                      os_short_id=config.RHEL_8_1_SHORTID,
-                                                      offline_token="valid_token",
-                                                      create_and_run=True,
-                                                      connection="session"),
-                          check_env_empty=False)
+        # # If run on different connection, the downloaded iso should be stored in ~/.local/share/libvirt/images/
+        # runner.createTest(TestMachinesCreate.VmDialog(self, sourceType='os',
+        #                                               os_name=config.RHEL_8_1,
+        #                                               os_short_id=config.RHEL_8_1_SHORTID,
+        #                                               offline_token="valid_token",
+        #                                               create_and_run=True,
+        #                                               connection="session"),
+        #                   check_env_empty=False)
 
         # Check only RHEL >= 8 are available for download
         runner.checkRhelIsDownloadableTest(TestMachinesCreate.VmDialog(self))
@@ -2563,8 +2606,12 @@ vnc_password= "{vnc_passwd}"
         # c-machines standard VM (vnc + spice on non-RHEL), running
         #
 
+        # s390x: need more than 256 MiB for both memory and storage
         dialog = TestMachinesCreate.VmDialog(self, sourceType='cloud',
                                              location=config.VALID_DISK_IMAGE_PATH,
+                                             memory_size=256,
+                                             storage_size=256,
+                                             storage_size_unit='MiB',
                                              create_and_run=True,
                                              delete=False)
         vmCockpit = dialog.name

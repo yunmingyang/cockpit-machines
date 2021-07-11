@@ -18,6 +18,7 @@
 # along with Cockpit; If not, see <http://www.gnu.org/licenses/>.
 
 import os
+import time
 
 import machineslib
 import testlib
@@ -30,6 +31,8 @@ class TestMachinesStoragePools(machineslib.VirtualMachinesCase):
 
     def gotoVolumesTab(self, poolName, connectionName="system"):
         selector = f"tr[data-row-id='pool-{poolName}-{connectionName}'] + tr li:contains('Storage volumes')"
+        # s390x maybe need a wait here
+        time.sleep(1)
         self.browser.click(selector + " > button")
         self.browser.wait_attr(selector, "class", "pf-v6-c-tabs__item pf-m-current")
 
@@ -132,7 +135,8 @@ class TestMachinesStoragePools(machineslib.VirtualMachinesCase):
         b.wait_in_text("#storage-volumes-delete", "Delete 1 volume")
         b.click("#storage-volumes-delete")
         b.wait_in_text(".pf-v6-c-alert .pf-v6-c-alert__title", "Storage volumes could not be deleted")
-        b.reload()
+        with b.wait_timeout(180):
+            b.reload()
         b.enter_page('/machines')
         self.togglePoolRow("myPoolTwo", connectionName)
         self.gotoVolumesTab("myPoolTwo")
@@ -140,7 +144,8 @@ class TestMachinesStoragePools(machineslib.VirtualMachinesCase):
         # Delete a volume from terminal and verify that refresh worked by reloading the browser page
         m.execute(f"rm -f {os.path.join(p2, 'VolumeThree')}")
         b.wait_visible(f"#pool-myPoolTwo-{connectionName}-volume-VolumeThree-name")
-        b.reload()
+        with b.wait_timeout(180):
+            b.reload()
         b.enter_page('/machines')
         self.togglePoolRow("myPoolTwo", connectionName)
         self.gotoVolumesTab("myPoolTwo")
@@ -178,7 +183,8 @@ class TestMachinesStoragePools(machineslib.VirtualMachinesCase):
         b.wait_visible(f".pf-m-aria-disabled #delete-pool-myPoolTwo-{connectionName}")
 
         # VM is not running, so we need to reload the page
-        b.reload()
+        with b.wait_timeout(180):
+            b.reload()
         b.enter_page('/machines')
 
         # Expand row for myPoolTwo and check list of storage volumes
@@ -813,8 +819,10 @@ class TestMachinesStoragePools(machineslib.VirtualMachinesCase):
         m.execute("virsh pool-destroy images; virsh pool-undefine images; virsh pool-create /tmp/poolImages")
         # self.addCleanup(m.execute, "virsh pool-define /tmp/poolImages")
         # The pool will not be shown if creating a transient storage pool without defining
-        b.reload()
-        b.enter_page('/machines')
+        with b.wait_timeout(180):
+            b.reload()
+        with b.wait_timeout(600):
+            b.enter_page('/machines')
         b.wait_in_text("body", "Virtual machines")
 
         b.click("#pool-images-system-action-kebab")
@@ -901,8 +909,10 @@ class TestMachinesStoragePools(machineslib.VirtualMachinesCase):
                             m.execute(f"virsh vol-create-as {self.name} {self.vol_name} 1M")
                             testlib.wait(lambda: self.vol_name in m.execute(f"virsh vol-list {self.name}"))
                             # need refresh after volume creation
-                            b.reload()
-                            b.enter_page('/machines')
+                            with b.wait_timeout(180):
+                                b.reload()
+                            with b.wait_timeout(600):
+                                b.enter_page('/machines')
 
                 self.test_obj.waitPoolRow(self.name)
                 self.test_obj.togglePoolRow(self.name)
@@ -958,7 +968,9 @@ class TestMachinesStoragePools(machineslib.VirtualMachinesCase):
                         elif self.pool_type == "dir":
                             testlib.wait(lambda: self.vol_name not in m.execute(f'ls -A {self.target}'))
                         elif self.pool_type == "disk":
-                            testlib.wait(lambda: self.vol_name not in m.execute("lsblk"))
+                            # This step will fail if the text of the original device include the volume name
+                            # such as sda1 in dasda1
+                            testlib.wait(lambda: self.vol_name not in m.execute(f"lsblk {self.source_dev}"))
                     else:
                         if self.pool_type == "netfs":
                             vol_path = os.path.join(self.source_path, self.vol_name)
@@ -1055,12 +1067,14 @@ class TestMachinesStoragePools(machineslib.VirtualMachinesCase):
                                             xfail=True,
                                             xfail_error=xfail_error).execute()
 
+            time.sleep(2)
             StoragePoolsCreationAndDeletion(self,
                                             name="iscsi-pool-2",
                                             pool_type="iscsi",
                                             target="/dev/disk/by-id/",
                                             source_dev=target_iqn).execute()
 
+            time.sleep(2)
             StoragePoolsCreationAndDeletion(self,
                                             name="iscsi-pool-3",
                                             pool_type="iscsi",
@@ -1083,7 +1097,8 @@ class TestMachinesStoragePools(machineslib.VirtualMachinesCase):
         # Detach the disk
         m.execute("virsh detach-disk subVmTest1 vdb --config")
         # Need to reload to update the disk usedby field
-        b.reload()
+        with b.wait_timeout(180):
+            b.reload()
         b.enter_page("/machines")
 
         self.waitPoolRow("images")

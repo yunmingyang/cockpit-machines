@@ -75,7 +75,7 @@ class VirtualMachinesCaseHelpers(testlib.MachineCase):
             # https://bugzilla.redhat.com/show_bug.cgi?id=2221144
             # The VM should not be rebooted when the confirmation dialog is shown
             time.sleep(5)
-            self.assertNotIn("Linux version", m.execute(f"cat {logPath}"))
+            self.assertNotIn("LOADPARM", m.execute(f"cat {logPath}"))
 
         # Some actions, which can cause expensive downtime when clicked accidentally, have confirmation dialog
         if action in ["off", "forceOff", "reboot", "forceReboot", "sendNMI"]:
@@ -91,9 +91,10 @@ class VirtualMachinesCaseHelpers(testlib.MachineCase):
         if action in ["resume", "run", "reboot", "forceReboot"]:
             b.wait_in_text(f"#vm-{vmName}-{connectionName}-state", "Running")
             if logPath:
-                testlib.wait(lambda: "Linux version" in m.execute(f"cat {logPath}"))
+                testlib.wait(lambda: "LOADPARM" in m.execute(f"cat {logPath}"))
         if action == "forceOff" or action == "off":
-            b.wait_in_text(f"#vm-{vmName}-{connectionName}-state", "Shut off")
+            # In s390x, shut off will take a long time, so use wait function
+            testlib.wait(lambda: "Shut off" in b.text(f"#vm-{vmName}-{connectionName}-state"), delay=3)
 
     def goToVmPage(self, vmName: str, connectionName: str = 'system') -> None:
         self.browser.click(f"tbody tr[data-row-id=\"vm-{vmName}-{connectionName}\"] a.vm-list-item-name")
@@ -183,7 +184,7 @@ class VirtualMachinesCaseHelpers(testlib.MachineCase):
         m.execute(r"until virsh net-info default | grep 'Active:\s*yes'; do sleep 1; done")
 
     def createVm(self, name: str, graphics: str = 'none', *, ptyconsole: bool = False, running: bool = True,
-                 memory: int = 128, connection: str = 'system', machine: testvm.Machine | None = None,
+                 memory: int = 256, connection: str = 'system', machine: testvm.Machine | None = None,
                  os: str | None = None) -> Mapping[str, str | int]:
         m = machine or self.machine
 
@@ -192,7 +193,9 @@ class VirtualMachinesCaseHelpers(testlib.MachineCase):
             # with i440fx by default there.
             os = "linux2022" if "rhel-8" not in m.image else "linux2016"
 
-        image_file = m.pull("alpine")
+        # image_file = m.pull("alpine")
+        originalImage = "/var/lib/libvirt/images/test.qcow2"
+        m.execute(f"test -f {originalImage}")
 
         if connection == "system":
             img = f"/var/lib/libvirt/images/{name}-2.img"
@@ -204,7 +207,7 @@ class VirtualMachinesCaseHelpers(testlib.MachineCase):
             logPath = f"/home/admin/.local/share/libvirt/console-{name}.log"
             qemuLogPath = f"/home/admin/.local/share/libvirt/qemu/{name}.log"
 
-        m.upload([image_file], img)
+        m.execute(f"cp {originalImage} {img}")
         m.execute(f"chmod 777 {img}")
 
         args: Mapping[str, str | int] = {
@@ -391,29 +394,29 @@ class VirtualMachinesCase(VirtualMachinesCaseHelpers, storagelib.StorageHelpers,
     def setUp(self) -> None:
         super().setUp()
 
-        for m in self.machines.values():
-            # We don't want nested KVM since it doesn't work well enough
-            # three levels deep.
-            #
-            # The first level is the VM allocated to us that runs our
-            # "tasks" container in certain environments, the second level
-            # is the VM started by testlib.py to run a given test, and the
-            # third level are the VMS started by the test itself.  In most
-            # environments, the "tasks" container runs on bare metal, and
-            # the VMs started here are on level 2.
-            #
-            # Using KVM on level 3 is significantly slower than software
-            # emulation, by something like a factor of 2 at least, and
-            # much worse on a machine with many VMs to the point that the
-            # kernel will trigger its NMI watchdog and the boot never
-            # finishes. So we switch it off by removing "/dev/kvm".
-            #
-            # Our environments where the VMs started by the tests are on
-            # level 2 don't have support for nested KVM. So "/dev/kvm"
-            # does not exist in the first place and we don't need to be
-            # careful to leave it in place.
-            #
-            m.execute("rm -f /dev/kvm")
+        # for m in self.machines.values():
+        #     # We don't want nested KVM since it doesn't work well enough
+        #     # three levels deep.
+        #     #
+        #     # The first level is the VM allocated to us that runs our
+        #     # "tasks" container in certain environments, the second level
+        #     # is the VM started by testlib.py to run a given test, and the
+        #     # third level are the VMS started by the test itself.  In most
+        #     # environments, the "tasks" container runs on bare metal, and
+        #     # the VMs started here are on level 2.
+        #     #
+        #     # Using KVM on level 3 is significantly slower than software
+        #     # emulation, by something like a factor of 2 at least, and
+        #     # much worse on a machine with many VMs to the point that the
+        #     # kernel will trigger its NMI watchdog and the boot never
+        #     # finishes. So we switch it off by removing "/dev/kvm".
+        #     #
+        #     # Our environments where the VMs started by the tests are on
+        #     # level 2 don't have support for nested KVM. So "/dev/kvm"
+        #     # does not exist in the first place and we don't need to be
+        #     # careful to leave it in place.
+        #     #
+        #     m.execute("rm -f /dev/kvm")
 
         m = self.machine
 

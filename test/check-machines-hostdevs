@@ -67,9 +67,9 @@ class TestMachinesHostDevs(VirtualMachinesCase):
 
                 b.wait_in_text("#vm-subVmTest1-hostdev-1-type", "usb")
                 b.wait_in_text("#vm-subVmTest1-hostdev-1-vendor", "Linux Foundation")
-                b.wait_in_text("#vm-subVmTest1-hostdev-1-product", "1.1 root hub")
+                b.wait_in_text("#vm-subVmTest1-hostdev-1-product", "3.0 root hub")
                 b.wait_in_text("#vm-subVmTest1-hostdev-1-source #1-device", "1")
-                b.wait_in_text("#vm-subVmTest1-hostdev-1-source #1-bus", "1")
+                b.wait_in_text("#vm-subVmTest1-hostdev-1-source #1-bus", "2")
 
         m.execute("virsh destroy subVmTest1")
         b.wait_in_text("#vm-subVmTest1-system-state", "Shut off")
@@ -183,7 +183,7 @@ class TestMachinesHostDevs(VirtualMachinesCase):
 
             def verify_backend(self):
                 self.run_admin(f"virsh -c qemu:///{connectionName} dumpxml subVmTest1 > /tmp/vmdir/vmxml2", connectionName)
-                m.execute("diff /tmp/vmdir/vmxml1 /tmp/vmdir/vmxml2 | sed -e 's/^>//;1d' > /tmp/vmdir/vmdiff")
+                m.execute(r"diff /tmp/vmdir/vmxml1 /tmp/vmdir/vmxml2 | sed -e 's/^>//;1d' | sed '/[0-9a-z]\{5\},[0-9a-z]\{2\}/d' | sed '1i\<root>' | sed '$a\</root>' > /tmp/vmdir/vmdiff")
 
                 if self.dev_type == "usb_device":
                     vendor_id = m.execute("cat /tmp/vmdir/vmdiff | xmllint --xpath 'string(//hostdev/source/vendor/@id)' - 2>&1 || true").strip()
@@ -202,6 +202,7 @@ class TestMachinesHostDevs(VirtualMachinesCase):
                                 return
 
                 elif self.dev_type == "pci":
+                    m.execute("cat /tmp/vmdir/vmdiff")
                     domain = int(m.execute("cat /tmp/vmdir/vmdiff | xmllint --xpath 'string(//hostdev/source/address/@domain)' - 2>&1 || true"), base=16)
                     bus = int(m.execute("cat /tmp/vmdir/vmdiff | xmllint --xpath 'string(//hostdev/source/address/@bus)' - 2>&1 || true"), base=16)
                     slot = int(m.execute("cat /tmp/vmdir/vmdiff | xmllint --xpath 'string(//hostdev/source/address/@slot)' - 2>&1 || true"), base=16)
@@ -233,10 +234,17 @@ class TestMachinesHostDevs(VirtualMachinesCase):
 
         output = m.execute(f"virsh -c qemu:///{connectionName} nodedev-list --cap pci")
         if output.strip() != "":
-            HostDevAddDialog(
-                self,
-                dev_type="pci",
-            ).execute()
+            if connectionName == "system":
+                HostDevAddDialog(
+                    self,
+                    dev_type="pci",
+                    dev_id=1
+                ).execute()
+            elif connectionName == "session":
+                HostDevAddDialog(
+                    self,
+                    dev_type="pci",
+                ).execute()
 
         mock_virt_xml = f"{self.vm_tmpdir}/mock-virt-xml"
         m.execute(f"echo '{virt_xml_mock}' > {mock_virt_xml}; chmod 777 {mock_virt_xml}")
@@ -293,8 +301,9 @@ class TestMachinesHostDevs(VirtualMachinesCase):
 
         root = ET.fromstring(vm_diff)
 
-        hostdev1_address_elem = root[0].find('source').find('address')
-        hostdev2_address_elem = root[1].find('source').find('address')
+        hostdevs = root.findall('hostdev')
+        hostdev1_address_elem = hostdevs[0].find('source').find('address')
+        hostdev2_address_elem = hostdevs[1].find('source').find('address')
 
         hostdev1_domain = hostdev1_address_elem.get('domain')[2:]  # Remove '0x' prefix from hex number
         hostdev1_bus = hostdev1_address_elem.get('bus')[2:]

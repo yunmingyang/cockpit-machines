@@ -119,10 +119,12 @@ class VirtualMachinesCaseHelpers:
         m.execute("virsh net-start default || true")
         m.execute(r"until virsh net-info default | grep 'Active:\s*yes'; do sleep 1; done")
 
-    def createVm(self, name, graphics='none', ptyconsole=False, running=True, memory=128, connection='system'):
+    # In ppc64le, 128MB memory may cause the VM crash
+    def createVm(self, name, graphics='none', ptyconsole=False, running=True, memory=256, connection='system'):
         m = self.machine
 
-        image_file = m.pull("cirros")
+        originalImage = "/var/lib/libvirt/images/ppc64lemini.qcow2"
+        m.execute("test -f {}".format(originalImage))
 
         if connection == "system":
             img = "/var/lib/libvirt/images/{0}-2.img".format(name)
@@ -130,7 +132,7 @@ class VirtualMachinesCaseHelpers:
             m.execute("runuser -l admin -c 'mkdir -p /home/admin/.local/share/libvirt/images'")
             img = "/home/admin/.local/share/libvirt/images/{0}-2.img".format(name)
 
-        m.upload([image_file], img)
+        m.execute("cp {} {}".format(originalImage, img))
         m.execute("chmod 777 {0}".format(img))
 
         args = {

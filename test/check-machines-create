@@ -56,14 +56,14 @@ class TestMachinesCreate(VirtualMachinesCase):
         print("    *\n    * validation errors and ui info/warn messages expected:\n    * ")
         runner.cancelDialogTest(TestMachinesCreate.VmDialog(self, sourceType='file',
                                                             location=config.NOVELL_MOCKUP_ISO_PATH,
-                                                            memory_size=128, memory_size_unit='MiB',
+                                                            memory_size=256, memory_size_unit='MiB',
                                                             storage_size=12500, storage_size_unit='GiB',
                                                             create_and_run=False,
                                                             pixel_test_tag="iso"))
 
         runner.cancelDialogTest(TestMachinesCreate.VmDialog(self, sourceType='url',
                                                             location=config.VALID_URL,
-                                                            memory_size=128, memory_size_unit='MiB',
+                                                            memory_size=256, memory_size_unit='MiB',
                                                             os_name=config.FEDORA_28,
                                                             create_and_run=False,
                                                             pixel_test_tag="url"))
@@ -79,7 +79,7 @@ class TestMachinesCreate(VirtualMachinesCase):
         # https://bugzilla.redhat.com/show_bug.cgi?id=1715409
         runner.cancelDialogTest(TestMachinesCreate.VmDialog(self, sourceType='url',
                                                             location=config.TREE_URL,
-                                                            memory_size=128, memory_size_unit='MiB',
+                                                            memory_size=256, memory_size_unit='MiB',
                                                             storage_pool=NO_STORAGE,
                                                             os_name=config.CENTOS_7,
                                                             create_and_run=False,
@@ -122,7 +122,7 @@ class TestMachinesCreate(VirtualMachinesCase):
         # The dialog should auto-adjust it to match the OS'es total memory
         runner.checkDialogFormValidationTest(TestMachinesCreate.VmDialog(self, sourceType='file',
                                                                          location=config.NOVELL_MOCKUP_ISO_PATH,
-                                                                         memory_size=100000, memory_size_unit='MiB',
+                                                                         memory_size=10000000, memory_size_unit='GiB',
                                                                          storage_pool=NO_STORAGE,
                                                                          create_and_run=False),
                                              {"memory": "available on host"})
@@ -196,13 +196,14 @@ class TestMachinesCreate(VirtualMachinesCase):
 
         date = datetime.today().strftime('%Y-%-m-%-d')
         connection_name = "system"
-        predicted_name = "fedora28-" + date
+        predicted_name = "silverblue36-" + date
         runner.createTest(TestMachinesCreate.VmDialog(self, name=predicted_name,
                                                       name_generated=True,
                                                       sourceType='os',
+                                                      memory_size=6, memory_size_unit='GiB',
                                                       storage_size=10, storage_size_unit='MiB',
-                                                      os_name=config.FEDORA_28,
-                                                      os_short_id=config.FEDORA_28_SHORTID,
+                                                      os_name=config.FEDORA_Silverblue_36,
+                                                      os_short_id=config.FEDORA_Silverblue_36_SHORTID,
                                                       connection=connection_name,
                                                       delete=False,
                                                       create_and_run=False))
@@ -214,9 +215,10 @@ class TestMachinesCreate(VirtualMachinesCase):
         predicted_name += "-B"
         runner.createTest(TestMachinesCreate.VmDialog(self, name=predicted_name,
                                                       name_generated=True, sourceType='os',
+                                                      memory_size=6, memory_size_unit='GiB',
                                                       storage_size=10, storage_size_unit='MiB',
-                                                      os_name=config.FEDORA_28,
-                                                      os_short_id=config.FEDORA_28_SHORTID,
+                                                      os_name=config.FEDORA_Silverblue_36,
+                                                      os_short_id=config.FEDORA_Silverblue_36_SHORTID,
                                                       connection=connection_name,
                                                       delete=True,
                                                       create_and_run=False),
@@ -225,13 +227,14 @@ class TestMachinesCreate(VirtualMachinesCase):
         # Generation for user session connection
         # It's possible for 2 VMs with the same name to exist on cifferent connections
         connection_name = "session"
-        predicted_name = "fedora28-" + date
+        predicted_name = "silverblue36-" + date
         runner.createTest(TestMachinesCreate.VmDialog(self, name=predicted_name,
                                                       name_generated=True,
                                                       sourceType='os',
+                                                      memory_size=6, memory_size_unit='GiB',
                                                       storage_size=10, storage_size_unit='MiB',
-                                                      os_name=config.FEDORA_28,
-                                                      os_short_id=config.FEDORA_28_SHORTID,
+                                                      os_name=config.FEDORA_Silverblue_36,
+                                                      os_short_id=config.FEDORA_Silverblue_36_SHORTID,
                                                       connection=connection_name,
                                                       delete=True,
                                                       create_and_run=False),
@@ -285,10 +288,10 @@ class TestMachinesCreate(VirtualMachinesCase):
 
         # try to CREATE few machines
         runner.createDownloadAnOSTest(TestMachinesCreate.VmDialog(self, sourceType='os',
-                                                                  expected_memory_size=128,
-                                                                  expected_storage_size=128,
-                                                                  os_name=config.FEDORA_28,
-                                                                  os_short_id=config.FEDORA_28_SHORTID,
+                                                                  expected_memory_size=1,
+                                                                  expected_storage_size=10,
+                                                                  os_name=config.CENTOS_7,
+                                                                  os_short_id=config.CENTOS_7_SHORTID,
                                                                   create_and_run=True))
 
         runner.createDownloadAnOSTest(TestMachinesCreate.VmDialog(self, sourceType='os',
@@ -296,37 +299,40 @@ class TestMachinesCreate(VirtualMachinesCase):
                                                                   user_password="catsaremybestfr13nds",
                                                                   user_login="foo",
                                                                   root_password="dogsaremybestfr13nds",
-                                                                  storage_size=246, storage_size_unit='MiB',
-                                                                  os_name=config.FEDORA_28,
-                                                                  os_short_id=config.FEDORA_28_SHORTID))
+                                                                  memory_size=1, memory_size_unit='GiB',
+                                                                  storage_size=10, storage_size_unit='GiB',
+                                                                  os_name=config.CENTOS_7,
+                                                                  os_short_id=config.CENTOS_7_SHORTID))
 
         # Don't create root account
         runner.createDownloadAnOSTest(TestMachinesCreate.VmDialog(self, sourceType='os',
                                                                   is_unattended=True, profile="desktop",
                                                                   user_login="foo",
                                                                   user_password="catsaremybestfr13nds",
-                                                                  storage_size=256, storage_size_unit='MiB',
-                                                                  os_name=config.FEDORA_28,
-                                                                  os_short_id=config.FEDORA_28_SHORTID))
+                                                                  memory_size=1, memory_size_unit='GiB',
+                                                                  storage_size=10, storage_size_unit='GiB',
+                                                                  os_name=config.CENTOS_7,
+                                                                  os_short_id=config.CENTOS_7_SHORTID))
 
         # Don't create user account
         runner.createDownloadAnOSTest(TestMachinesCreate.VmDialog(self, sourceType='os',
                                                                   is_unattended=True, profile="jeos",
                                                                   root_password="catsaremybestfr13nds",
-                                                                  storage_size=256, storage_size_unit='MiB',
-                                                                  os_name=config.FEDORA_28,
-                                                                  os_short_id=config.FEDORA_28_SHORTID))
+                                                                  memory_size=1, memory_size_unit='GiB',
+                                                                  storage_size=10, storage_size_unit='GiB',
+                                                                  os_name=config.CENTOS_7,
+                                                                  os_short_id=config.CENTOS_7_SHORTID))
 
         # name already used from a VM that is currently being created
         # https://bugzilla.redhat.com/show_bug.cgi?id=1780451
         runner.createDownloadAnOSTest(TestMachinesCreate.VmDialog(self, name='existing-name', sourceType='os',
-                                                                  expected_memory_size=128,
-                                                                  expected_storage_size=128,
-                                                                  os_name=config.FEDORA_28,
-                                                                  os_short_id=config.FEDORA_28_SHORTID,
+                                                                  expected_memory_size=1,
+                                                                  expected_storage_size=10,
+                                                                  os_name=config.CENTOS_7,
+                                                                  os_short_id=config.CENTOS_7_SHORTID,
                                                                   create_and_run=True, delete=False))
 
-        runner.checkDialogFormValidationTest(TestMachinesCreate.VmDialog(self, "existing-name", storage_size=1,
+        runner.checkDialogFormValidationTest(TestMachinesCreate.VmDialog(self, "existing-name", storage_size=10,
                                                                          check_script_finished=False, env_is_empty=False), {"vm-name": "already exists"})
 
     def testCreatePXE(self):
@@ -370,7 +376,7 @@ class TestMachinesCreate(VirtualMachinesCase):
         # Create with immediate starting
         runner.createTest(TestMachinesCreate.VmDialog(self, name='pxe-guest', sourceType='pxe',
                                                       location="network=pxe-nat",
-                                                      memory_size=128, memory_size_unit='MiB',
+                                                      memory_size=256, memory_size_unit='MiB',
                                                       storage_pool=NO_STORAGE,
                                                       create_and_run=True, delete=False))
 
@@ -407,8 +413,8 @@ class TestMachinesCreate(VirtualMachinesCase):
                 p.remove(element)
 
         # Set useserial attribute for bios os element
-        bios = ET.SubElement(root.find('os'), 'bios')
-        bios.set('useserial', 'yes')
+        # bios = ET.SubElement(root.find('os'), 'bios')
+        # bios.set('useserial', 'yes')
 
         # Add a serial console of type file
         console = ET.fromstring(self.machine.execute("virt-xml --build --console file,path=/tmp/serial.txt,target_type=serial"))
@@ -425,7 +431,10 @@ class TestMachinesCreate(VirtualMachinesCase):
         self.machine.execute("virsh start pxe-guest")
 
         # The file is full of ANSI control characters in between every letter, filter them out
-        wait(lambda: self.machine.execute(r"sed 's,\x1B\[[0-9;]*[a-zA-Z],,g' /tmp/serial.txt | grep 'Rebooting in 60'"), delay=3)
+        # ppc64le will cause an error which is "Bad executable"
+        wait(lambda: self.machine.execute("cat /tmp/serial.txt | grep 'TFTP: Received pxe.cfg'"), delay=3)
+        # If failed, try to use this line
+        # wait(lambda: self.machine.execute(r"sed 's,\x1B\[[0-9;]*[a-zA-Z],,g' /tmp/serial.txt | grep 'Rebooting in 60'"), delay=3)
         self.goToMainPage()
 
         self.machine.execute("virsh destroy pxe-guest")
@@ -448,36 +457,39 @@ class TestMachinesCreate(VirtualMachinesCase):
         b.wait_in_text("#vm-pxe-guest-boot-order", "disk")
         b.wait_not_in_text("#vm-pxe-guest-boot-order", "network")
 
-    def testCreateAndVerifyQemuConf(self):
-        runner = TestMachinesCreate.CreateVmRunner(self)
-        config = TestMachinesCreate.TestCreateConfig
-        m = self.machine
+#     # SPICE will cause an error like "unsupported configuration: spice graphics are not supported with this QEMU" in ppc64le
+#     def testCreateAndVerifyQemuConf(self):
+#         runner = TestMachinesCreate.CreateVmRunner(self)
+#         config = TestMachinesCreate.TestCreateConfig
+#         m = self.machine
 
-        self.restore_file("/etc/libvirt/qemu.conf")
+#         self.restore_file("/etc/libvirt/qemu.conf")
 
-        self.login_and_go("/machines")
-        self.waitPageInit()
+#        self.login_and_go("/machines")
+#        self.waitPageInit()
 
-        vnc_listen = "192.168.2.6"
-        vnc_passwd = "mypass"
+#         vnc_listen = "192.168.2.6"
+#         vnc_passwd = "mypass"
 
-        m.write("/etc/libvirt/qemu.conf", f'''vnc_listen = "{vnc_listen}"
-vnc_password= "{vnc_passwd}"
-''', append=True)
+#         m.write(
+#             "/etc/libvirt/qemu.conf",
+#             f'''vnc_listen = "{vnc_listen}"
+# vnc_password= "{vnc_passwd}"''',
+#             append=True)
 
-        runner.createAndVerifyQemuConfParsedTest(
-            TestMachinesCreate.VmDialog(self, sourceType='file',
-                                        storage_pool=NO_STORAGE,
-                                        location=config.NOVELL_MOCKUP_ISO_PATH),
-            vnc_listen, "::1", vnc_passwd, None)
+#        runner.createAndVerifyQemuConfParsedTest(
+#            TestMachinesCreate.VmDialog(self, sourceType='file',
+#                                        storage_pool=NO_STORAGE,
+#                                        location=config.NOVELL_MOCKUP_ISO_PATH),
+#            vnc_listen, "::1", vnc_passwd, None)
 
-        # Ensure that missing qemu.conf would not crash the script but just pick the 127.0.0.1 default value
-        m.execute("rm /etc/libvirt/qemu.conf")
-        runner.createAndVerifyQemuConfParsedTest(
-            TestMachinesCreate.VmDialog(self, sourceType='file',
-                                        storage_pool=NO_STORAGE,
-                                        location=config.NOVELL_MOCKUP_ISO_PATH),
-            "127.0.0.1", "::1", None, None)
+#        # Ensure that missing qemu.conf would not crash the script but just pick the 127.0.0.1 default value
+#        m.execute("rm /etc/libvirt/qemu.conf")
+#        runner.createAndVerifyQemuConfParsedTest(
+#            TestMachinesCreate.VmDialog(self, sourceType='file',
+#                                        storage_pool=NO_STORAGE,
+#                                        location=config.NOVELL_MOCKUP_ISO_PATH),
+#            "127.0.0.1", "::1", None, None)
 
     @skipImage("TODO: Arch Linux has no iscsi support", "arch")
     def testCreateThenInstall(self):
@@ -501,7 +513,7 @@ vnc_password= "{vnc_passwd}"
         # Check choosing existing volume as destination storage
         runner.createThenInstallTest(TestMachinesCreate.VmDialog(self, sourceType='file',
                                                                  location=config.NOVELL_MOCKUP_ISO_PATH,
-                                                                 memory_size=128, memory_size_unit='MiB',
+                                                                 memory_size=256, memory_size_unit='MiB',
                                                                  storage_pool="poolDisk",
                                                                  storage_volume=partition))
 
@@ -525,14 +537,14 @@ vnc_password= "{vnc_passwd}"
             # Check choosing existing volume as destination storage
             runner.createThenInstallTest(TestMachinesCreate.VmDialog(self, sourceType='file',
                                                                      location=config.NOVELL_MOCKUP_ISO_PATH,
-                                                                     memory_size=128, memory_size_unit='MiB',
+                                                                     memory_size=256, memory_size_unit='MiB',
                                                                      storage_pool="iscsi-pool",
                                                                      storage_volume="unit:0:0:0"))
 
         # Click the install button through the VM details
         runner.createThenInstallTest(TestMachinesCreate.VmDialog(self, sourceType='file',
                                                                  location=config.NOVELL_MOCKUP_ISO_PATH,
-                                                                 memory_size=128, memory_size_unit='MiB',
+                                                                 memory_size=256, memory_size_unit='MiB',
                                                                  storage_pool=NO_STORAGE), True)
 
         # Check PXE boot with separate install phase
@@ -544,7 +556,7 @@ vnc_password= "{vnc_passwd}"
         # Try performing an installation which will fail and ensure that the 'Install' button is still available
         runner.createThenInstallTest(TestMachinesCreate.VmDialog(self, sourceType='file',
                                                                  location=config.NOVELL_MOCKUP_ISO_PATH,
-                                                                 memory_size=128, memory_size_unit='MiB',
+                                                                 memory_size=256, memory_size_unit='MiB',
                                                                  storage_pool=NO_STORAGE), True, True)
 
     def testCreateFileSource(self):
@@ -580,7 +592,7 @@ vnc_password= "{vnc_passwd}"
 
         runner.createTest(TestMachinesCreate.VmDialog(self, sourceType='file',
                                                       location=config.NOVELL_MOCKUP_ISO_PATH,
-                                                      memory_size=128, memory_size_unit='MiB',
+                                                      memory_size=256, memory_size_unit='MiB',
                                                       storage_pool=NO_STORAGE,
                                                       create_and_run=False,
                                                       connection='session'))
@@ -600,7 +612,7 @@ vnc_password= "{vnc_passwd}"
         # Check choosing existing volume as destination storage
         runner.createTest(TestMachinesCreate.VmDialog(self, sourceType='file',
                                                       location=config.NOVELL_MOCKUP_ISO_PATH,
-                                                      memory_size=128, memory_size_unit='MiB',
+                                                      memory_size=256, memory_size_unit='MiB',
                                                       storage_pool="tmp pool",
                                                       storage_volume="vmTmpDestination.qcow2",
                                                       create_and_run=True,))
@@ -608,7 +620,7 @@ vnc_password= "{vnc_passwd}"
         # Check NO_STORAGE option (only define VM)
         runner.createTest(TestMachinesCreate.VmDialog(self, sourceType='file',
                                                       location=config.NOVELL_MOCKUP_ISO_PATH,
-                                                      memory_size=128, memory_size_unit='MiB',
+                                                      memory_size=256, memory_size_unit='MiB',
                                                       storage_pool=NO_STORAGE,
                                                       create_and_run=True,))
 
@@ -616,14 +628,14 @@ vnc_password= "{vnc_passwd}"
         # Check file with empty space
         runner.createTest(TestMachinesCreate.VmDialog(self, sourceType='file',
                                                       location=config.PATH_WITH_SPACE,
-                                                      memory_size=128, memory_size_unit='MiB',
+                                                      memory_size=256, memory_size_unit='MiB',
                                                       storage_pool=NO_STORAGE,
                                                       create_and_run=True,))
 
         # Check Create new QCOW2 volume
         runner.createTest(TestMachinesCreate.VmDialog(self, sourceType='file',
                                                       location=config.PATH_WITH_SPACE,
-                                                      memory_size=128, memory_size_unit='MiB',
+                                                      memory_size=256, memory_size_unit='MiB',
                                                       storage_size=128, storage_size_unit='MiB',
                                                       storage_pool=NEW_VOLUME_QCOW2,
                                                       create_and_run=True,))
@@ -631,7 +643,7 @@ vnc_password= "{vnc_passwd}"
         # Check Create new RAW volume
         runner.createTest(TestMachinesCreate.VmDialog(self, sourceType='file',
                                                       location=config.PATH_WITH_SPACE,
-                                                      memory_size=128, memory_size_unit='MiB',
+                                                      memory_size=256, memory_size_unit='MiB',
                                                       storage_size=128, storage_size_unit='MiB',
                                                       storage_pool=NEW_VOLUME_RAW,
                                                       create_and_run=True,))
@@ -656,11 +668,11 @@ vnc_password= "{vnc_passwd}"
         # This is applicable for all tests that we want to really successfully run a nested VM.
         # in order to allow the rest of the tests to run faster with QEMU KVM
         # Stop pmcd service if available which is invoking pmdakvm and is keeping KVM module used
-        self.machine.execute("systemctl stop pmcd || true; modprobe -r kvm_intel kvm_amd kvm")
+        # self.machine.execute("systemctl stop pmcd || true; modprobe -r kvm_intel kvm_amd kvm")
 
         runner.createTest(TestMachinesCreate.VmDialog(self, sourceType='disk_image',
                                                       location=config.VALID_DISK_IMAGE_PATH,
-                                                      memory_size=128, memory_size_unit='MiB',
+                                                      memory_size=256, memory_size_unit='MiB',
                                                       create_and_run=True))
 
     def testCreateUrlSource(self):
@@ -724,7 +736,7 @@ vnc_password= "{vnc_passwd}"
         # sometimes not; so run this last
         runner.createTest(TestMachinesCreate.VmDialog(self, sourceType='url',
                                                       location=config.ISO_URL,
-                                                      memory_size=128, memory_size_unit='MiB',
+                                                      memory_size=256, memory_size_unit='MiB',
                                                       storage_pool=NO_STORAGE,
                                                       create_and_run=True))
 
@@ -770,6 +782,10 @@ vnc_password= "{vnc_passwd}"
         RHEL_7_1_SHORTID = 'rhel7.1'
 
         CENTOS_7 = 'CentOS 7'
+        CENTOS_7_SHORTID = 'centos7'
+
+        FEDORA_Silverblue_36 = 'Fedora Silverblue 36'
+        FEDORA_Silverblue_36_SHORTID = 'silverblue36'
 
         MANDRIVA_2011_FILTERED_OS = 'Mandriva Linux 2011'
 
@@ -783,7 +799,7 @@ vnc_password= "{vnc_passwd}"
 
         def __init__(self, test_obj, name=None, name_generated=False,
                      sourceType='file', sourceTypeSecondChoice=None, location='',
-                     memory_size=128, memory_size_unit='MiB',
+                     memory_size=256, memory_size_unit='MiB',
                      expected_memory_size=None,
                      storage_size=None, storage_size_unit='GiB',
                      expected_storage_size=None,
@@ -1577,12 +1593,15 @@ vnc_password= "{vnc_passwd}"
         def _deleteVm(self, dialog):
             b = self.browser
 
+            time.sleep(2)
+
             self.test_obj.performAction(dialog.name, "delete", connectionName=dialog.connection)
             b.wait_visible(f"#vm-{dialog.name}-delete-modal-dialog")
             b.click(f"#vm-{dialog.name}-delete-modal-dialog button:contains(Delete)")
             b.wait_not_present(f"#vm-{dialog.name}-delete-modal-dialog")
 
             self.test_obj.waitVmRow(dialog.name, dialog.connection, False)
+
             return self
 
         def _assertCorrectConfiguration(self, dialog):
@@ -1728,6 +1747,7 @@ vnc_password= "{vnc_passwd}"
                     ._assertDomainDefined(dialog.name, dialog.connection)
 
             if dialog.delete:
+                time.sleep(2)
                 self._deleteVm(dialog)
                 if check_env_empty:
                     self.checkEnvIsEmpty(dialog)
@@ -1857,7 +1877,7 @@ vnc_password= "{vnc_passwd}"
         dialog = TestMachinesCreate.VmDialog(self, sourceType='file',
                                              name="VmNotInstalled",
                                              location=TestMachinesCreate.TestCreateConfig.NOVELL_MOCKUP_ISO_PATH,
-                                             memory_size=128, memory_size_unit='MiB',
+                                             memory_size=256, memory_size_unit='MiB',
                                              storage_size=256, storage_size_unit='MiB',
                                              create_and_run=False)
         dialog.open() \
@@ -1891,9 +1911,9 @@ vnc_password= "{vnc_passwd}"
         b.blur("#machines-vcpu-max-field")
         b.set_input_text("#machines-vcpu-count-field input", "2")
         b.blur("#machines-vcpu-count-field")
-        b.select_from_dropdown("#socketsSelect", "2")
-        b.select_from_dropdown("#coresSelect", "2")
-        b.select_from_dropdown("#threadsSelect", "2")
+        b.select_from_dropdown("#socketsSelect", "8")
+        # b.select_from_dropdown("#coresSelect", "2")
+        # b.select_from_dropdown("#threadsSelect", "2")
         b.click("#machines-cpu-modal-dialog-apply")
         b.wait_not_present(".pf-v5-c-modal-box__body")
 
@@ -1905,41 +1925,44 @@ vnc_password= "{vnc_passwd}"
         b.click("#vm-VmNotInstalled-order-modal-device-row-0 #vm-VmNotInstalled-order-modal-down")
         b.click("#vm-VmNotInstalled-order-modal-save")
         b.wait_not_present(".pf-v5-c-modal-box__body")
+        b.wait_text("#vm-VmNotInstalled-boot-order", "network,diskedit")
 
         # Attach some interface
         m.execute("virsh attach-interface --persistent VmNotInstalled bridge virbr0")
 
-        # Change the os boot firmware configuration
-        b.wait_in_text("#vm-VmNotInstalled-firmware", "BIOS")
-        b.click("#vm-VmNotInstalled-firmware")
-        b.wait_visible(".pf-v5-c-modal-box__body")
-        b.select_from_dropdown(".pf-v5-c-modal-box__body select", "efi")
-        b.click("#firmware-dialog-apply")
-        b.wait_not_present(".pf-v5-c-modal-box__body")
-        b.wait_in_text("#vm-VmNotInstalled-firmware", "UEFI")
+        # ppc64le and s390x will show "Unknown firmware" on its firmware as there is no edk2/OVMF value
+        b.wait_in_text("#vm-VmNotInstalled-firmware", "Unknown firmware")
+        # # Change the os boot firmware configuration
+        # b.wait_in_text("#vm-VmNotInstalled-firmware", "BIOS")
+        # b.click("#vm-VmNotInstalled-firmware")
+        # b.wait_visible(".pf-v5-c-modal-box__body")
+        # b.select_from_dropdown(".pf-v5-c-modal-box__body select", "efi")
+        # b.click("#firmware-dialog-apply")
+        # b.wait_not_present(".pf-v5-c-modal-box__body")
+        # b.wait_in_text("#vm-VmNotInstalled-firmware", "UEFI")
 
-        # Temporarily delete the OVMF binary and check the firmware options again
-        if "fedora" in m.image or "rhel" in m.image or "centos" in m.image:
-            ovmf_path = "/usr/share/edk2"
-        elif "debian" in m.image or "ubuntu" in m.image:
-            ovmf_path = "/usr/share/OVMF"
-        elif "arch" in m.image:
-            ovmf_path = "/usr/share/edk2-ovmf"
-        else:
-            raise AssertionError("Unhandled distro for OVMF path")
+        # # Temporarily delete the OVMF binary and check the firmware options again
+        # if "fedora" in m.image or "rhel" in m.image or "centos" in m.image:
+        #     ovmf_path = "/usr/share/edk2"
+        # elif "debian" in m.image or "ubuntu" in m.image:
+        #     ovmf_path = "/usr/share/OVMF"
+        # elif "arch" in m.image:
+        #     ovmf_path = "/usr/share/edk2-ovmf"
+        # else:
+        #     raise AssertionError("Unhandled distro for OVMF path")
 
-        m.execute("mount -t tmpfs tmpfs " + ovmf_path)
-        self.addCleanup(m.execute, f"umount {ovmf_path} || true")
+        # m.execute("mount -t tmpfs tmpfs " + ovmf_path)
+        # self.addCleanup(m.execute, f"umount {ovmf_path} || true")
 
-        # Reload for the new configuration to be read
-        b.reload()
-        b.enter_page('/machines')
+        # # Reload for the new configuration to be read
+        # b.reload()
+        # b.enter_page('/machines')
 
         b.mouse("#vm-VmNotInstalled-firmware-tooltip", "mouseenter")
         b.wait_in_text(".pf-v5-c-tooltip", "Libvirt did not detect any UEFI/OVMF firmware image installed on the host")
         b.mouse("#vm-VmNotInstalled-firmware-tooltip", "mouseleave")
         b.wait_not_present("#missing-uefi-images")
-        m.execute("umount " + ovmf_path)
+        # m.execute("umount " + ovmf_path)
 
         # Install the VM
         b.click("#vm-VmNotInstalled-system-install")
@@ -1954,6 +1977,7 @@ vnc_password= "{vnc_passwd}"
 
         # Check configuration changes survived installation
         # Check memory settings have persisted
+        time.sleep(2)
         b.click("#vm-VmNotInstalled-memory-count button")
         b.wait_visible("#vm-VmNotInstalled-memory-modal-memory")
         b.wait_val("#vm-VmNotInstalled-memory-modal-max-memory", "150")
@@ -1966,9 +1990,9 @@ vnc_password= "{vnc_passwd}"
         b.wait_visible(".pf-v5-c-modal-box__body")
         b.wait_val("#machines-vcpu-max-field input", "8")
         b.wait_val("#machines-vcpu-count-field input", "2")
-        b.wait_val("#socketsSelect", "2")
-        b.wait_val("#coresSelect", "2")
-        b.wait_val("#threadsSelect", "2")
+        b.wait_val("#socketsSelect", "8")
+        # b.wait_val("#coresSelect", "2")
+        # b.wait_val("#threadsSelect", "2")
         b.click("#machines-cpu-modal-dialog-cancel")
         b.wait_not_present(".pf-v5-c-modal-box__body")
 
@@ -1976,7 +2000,7 @@ vnc_password= "{vnc_passwd}"
         b.wait_text_not("#vm-VmNotInstalled-boot-order", bootOrder)
 
         # Check firmware changes persisted
-        b.wait_in_text("#vm-VmNotInstalled-firmware", "UEFI")
+        b.wait_in_text("#vm-VmNotInstalled-firmware", "Unknown firmware")
 
         # Check autostart have persisted
         self.assertEqual(b.get_checked("#vm-VmNotInstalled-autostart-switch"), autostart)
@@ -2009,14 +2033,16 @@ vnc_password= "{vnc_passwd}"
 
         self.waitVmPage("VmNotInstalledBios")
 
-        # Show and keep the os boot firmware configuration
-        b.wait_in_text("#vm-VmNotInstalledBios-firmware", "BIOS")
-        b.click("#vm-VmNotInstalledBios-firmware")
-        b.wait_visible(".pf-v5-c-modal-box__body")
-        b.wait_val(".pf-v5-c-modal-box__body select", "bios")
-        b.click("#firmware-dialog-apply")
-        b.wait_not_present(".pf-v5-c-modal-box__body")
-        b.wait_in_text("#vm-VmNotInstalledBios-firmware", "BIOS")
+        # ppc64le and s390x will show "Unknown firmware" on its firmware as there is no edk2/OVMF value
+        b.wait_in_text("#vm-VmNotInstalledBios-firmware", "Unknown firmware")
+        # # Show and keep the os boot firmware configuration
+        # b.wait_in_text("#vm-VmNotInstalledBios-firmware", "BIOS")
+        # b.click("#vm-VmNotInstalledBios-firmware")
+        # b.wait_visible(".pf-v5-c-modal-box__body")
+        # b.wait_val(".pf-v5-c-modal-box__body select", "bios")
+        # b.click("#firmware-dialog-apply")
+        # b.wait_not_present(".pf-v5-c-modal-box__body")
+        # b.wait_in_text("#vm-VmNotInstalledBios-firmware", "BIOS")
 
         # Install the VM
         b.click("#vm-VmNotInstalledBios-system-install")

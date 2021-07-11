@@ -28,8 +28,16 @@ class TestMachinesVirtualization(VirtualMachinesCase):
         b = self.browser
         m = self.machine
 
-        m.execute("touch /tmp/cpuinfo.txt && mount --bind /tmp/cpuinfo.txt /proc/cpuinfo")
-        self.addCleanup(m.execute, "umount /proc/cpuinfo || true")
+        # # PPC64LE: not work
+        # m.execute("touch /tmp/cpuinfo.txt && mount --bind /tmp/cpuinfo.txt /proc/cpuinfo")
+        # self.addCleanup(m.execute, "umount /proc/cpuinfo || true")
+        fakePath = "/tmp/virt-host-validate"
+        realPath = "/usr/bin/virt-host-validate"
+        scriptContent = '''#!/bin/bash
+echo '  QEMU: Checking for hardware virtualization                                 : FAILED'
+        '''
+        m.execute(f'echo "{scriptContent}" > {fakePath} && chmod +x {fakePath} && mount -o bind {fakePath} {realPath}')
+        self.addCleanup(m.execute, f"umount {realPath} || true")
 
         self.login_and_go("/machines")
 

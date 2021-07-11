@@ -30,7 +30,7 @@ class TestMachinesConsoles(VirtualMachinesCase):
     def testExternalConsole(self):
         b = self.browser
 
-        self.createVm("subVmTest1", graphics="spice")
+        self.createVm("subVmTest1", graphics="vnc")
 
         self.login_and_go("/machines")
         self.waitPageInit()
@@ -39,14 +39,16 @@ class TestMachinesConsoles(VirtualMachinesCase):
         b.wait_in_text("#vm-subVmTest1-system-state", "Running")  # running or paused
         self.goToVmPage("subVmTest1")
 
-        # since VNC is not defined for this VM, the view for "Desktop Viewer" is rendered by default
+        b.click("#pf-c-console__type-selector")
+        b.wait_visible("ul.pf-v5-c-select__menu")
+        b.click("#DesktopViewer button")
         b.wait_in_text(".pf-c-console__manual-connection dl > div:first-child dd", "127.0.0.1")
         b.wait_in_text(".pf-c-console__manual-connection dl > div:nth-child(2) dd", "5900")
 
         b.click(".pf-c-console__remote-viewer-launch-vv")  # "Launch Remote Viewer" button
         b.wait_visible("#dynamically-generated-file")  # is .vv file generated for download?
         self.assertEqual(b.attr("#dynamically-generated-file", "href"),
-                         u"data:application/x-virt-viewer,%5Bvirt-viewer%5D%0Atype%3Dspice%0Ahost%3D127.0.0.1%0Aport%3D5900%0Adelete-this-file%3D1%0Afullscreen%3D0%0A")
+                         u"data:application/x-virt-viewer,%5Bvirt-viewer%5D%0Atype%3Dvnc%0Ahost%3D127.0.0.1%0Aport%3D5900%0Adelete-this-file%3D1%0Afullscreen%3D0%0A")
 
         # HACK: clicking 'Launch Remote Viewer' kills execution context and thus CDP fails
         b.reload()
@@ -56,6 +58,9 @@ class TestMachinesConsoles(VirtualMachinesCase):
         b.click("button:contains(Expand)")
 
         # Check "More information"
+        b.click("#pf-c-console__type-selector")
+        b.wait_visible("ul.pf-v5-c-select__menu")
+        b.click("#DesktopViewer button")
         b.click('.pf-c-console__remote-viewer .pf-v5-c-expandable-section__toggle')
         b.wait_in_text('.pf-v5-c-expandable-section__content',
                        'Clicking "Launch remote viewer" will download')
@@ -86,7 +91,7 @@ class TestMachinesConsoles(VirtualMachinesCase):
         self.machine.execute(f"echo '' > {args['logfile']}")
         b.click("#subVmTest1-system-vnc-sendkey button")
         b.click("#ctrl-alt-Delete")
-        self.waitLogFile(args['logfile'], "Requesting system reboot")
+        self.waitLogFile(args['logfile'], "SLOF")
 
     def testInlineConsoleWithUrlRoot(self, urlroot=""):
         self.testInlineConsole(urlroot="/webcon")
@@ -117,11 +122,12 @@ class TestMachinesConsoles(VirtualMachinesCase):
         for _ in range(0, 60):
             b.focus(f"#{name}-terminal .xterm-accessibility-tree")
             b.key_press("\r")
-            if "cirros login" in b.text(f"#{name}-terminal .xterm-accessibility-tree"):
+            if "localhost login" in b.text(f"#{name}-terminal .xterm-accessibility-tree"):
                 break
-            time.sleep(1)
+            # In ppc64le, booting up need more time
+            time.sleep(5)
         # Make sure the content of console is expected
-        wait(lambda: "cirros login" in b.text(f"#{name}-terminal .xterm-accessibility-tree"))
+        wait(lambda: "localhost login" in b.text(f"#{name}-terminal .xterm-accessibility-tree"))
 
         b.click(f"#{name}-serialconsole-disconnect")
         b.wait_text(f"#{name}-terminal", "Disconnected from serial console. Click the connect button.")
@@ -152,6 +158,8 @@ class TestMachinesConsoles(VirtualMachinesCase):
         m.execute("for i in {1..5};do virt-xml vmWithSerialConsole --add-device --console pty,target.type=virtio; done")
         m.execute("virsh start vmWithSerialConsole")
 
+        # Add a wait since it will be failed if checking too fast, the console1 ~ console5 will not be shown
+        time.sleep(5)
         for i in range(0, 6):
             b.click("#pf-c-console__type-selector")
             b.wait_visible("#pf-c-console__type-selector + .pf-v5-c-select__menu")

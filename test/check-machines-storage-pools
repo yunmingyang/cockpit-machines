@@ -19,6 +19,7 @@
 
 import os
 import sys
+import time
 
 # import Cockpit's machinery for test VMs and its browser test API
 TEST_DIR = os.path.dirname(__file__)
@@ -34,6 +35,8 @@ class TestMachinesStoragePools(VirtualMachinesCase):
 
     def gotoVolumesTab(self, poolName, connectionName="system"):
         selector = f"tr[data-row-id=pool-{poolName}-{connectionName}] + tr li:contains('Storage volumes')"
+        # s390x maybe need a wait here
+        time.sleep(1)
         self.browser.click(selector + " > button")
         self.browser.wait_attr(selector, "class", "pf-c-tabs__item pf-m-current")
 
@@ -509,8 +512,7 @@ class TestMachinesStoragePools(VirtualMachinesCase):
                 source={"host": "127.0.0.1", "source_path": target_iqn}
             ).execute()
 
-            if ("debian" not in m.image and "ubuntu" not in m.image and "rhel-9" not in m.image and "centos-9" not in m.image
-                    and float(m.execute("virsh --version").strip()[:3]) >= 4.7):
+            if ("debian" not in m.image and "ubuntu" not in m.image and "rhel-9" not in m.image and "centos-9" not in m.image and float(m.execute("virsh --version").strip()[:3]) >= 4.7):
                 # iscsi-direct pool type is available since libvirt 4.7, but not in Debian/Ubuntu (https://bugs.debian.org/918728)
                 StoragePoolCreateDialog(
                     self,

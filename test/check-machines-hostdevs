@@ -66,9 +66,9 @@ class TestMachinesHostDevs(VirtualMachinesCase):
 
                 b.wait_in_text("#vm-subVmTest1-hostdev-1-type", "usb")
                 b.wait_in_text("#vm-subVmTest1-hostdev-1-vendor", "Linux Foundation")
-                b.wait_in_text("#vm-subVmTest1-hostdev-1-product", "1.1 root hub")
+                b.wait_in_text("#vm-subVmTest1-hostdev-1-product", "3.0 root hub")
                 b.wait_in_text("#vm-subVmTest1-hostdev-1-source #1-device", "1")
-                b.wait_in_text("#vm-subVmTest1-hostdev-1-source #1-bus", "1")
+                b.wait_in_text("#vm-subVmTest1-hostdev-1-source #1-bus", "2")
 
         # Test offline attachment of PCI host device
         # A pci device should always be present
@@ -186,6 +186,7 @@ class TestMachinesHostDevs(VirtualMachinesCase):
                                 return
 
                 elif self.dev_type == "pci":
+                    m.execute("cat /tmp/vmdir/vmdiff")
                     domain = int(m.execute("cat /tmp/vmdir/vmdiff | xmllint --xpath 'string(//hostdev/source/address/@domain)' - 2>&1 || true"), base=16)
                     bus = int(m.execute("cat /tmp/vmdir/vmdiff | xmllint --xpath 'string(//hostdev/source/address/@bus)' - 2>&1 || true"), base=16)
                     slot = int(m.execute("cat /tmp/vmdir/vmdiff | xmllint --xpath 'string(//hostdev/source/address/@slot)' - 2>&1 || true"), base=16)
@@ -212,10 +213,17 @@ class TestMachinesHostDevs(VirtualMachinesCase):
 
         output = m.execute(f"virsh -c qemu:///{connectionName} nodedev-list --cap pci")
         if output.strip() != "":
-            HostDevAddDialog(
-                self,
-                dev_type="pci",
-            ).execute()
+            if connectionName == "system":
+                HostDevAddDialog(
+                    self,
+                    dev_type="pci",
+                    dev_id=1
+                ).execute()
+            elif connectionName == "session":
+                HostDevAddDialog(
+                    self,
+                    dev_type="pci",
+                ).execute()
 
         mock_virt_xml = f"{self.vm_tmpdir}/mock-virt-xml"
         m.execute(f"echo '{virt_xml_mock}' > {mock_virt_xml}; chmod 777 {mock_virt_xml}")

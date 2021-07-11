@@ -19,6 +19,7 @@
 
 import os
 import sys
+import time
 
 # import Cockpit's machinery for test VMs and its browser test API
 TEST_DIR = os.path.dirname(__file__)
@@ -59,13 +60,13 @@ class TestMachinesSettings(VirtualMachinesCase):
 
         # Set new values
         b.set_input_text("#machines-vcpu-max-field", "4")
-        b.set_input_text("#machines-vcpu-count-field", "3")
+        b.set_input_text("#machines-vcpu-count-field", "4")
 
         # Set new socket value
         b.wait_val("#socketsSelect", "4")
-        b.set_val("#socketsSelect", "2")
+        # b.set_val("#socketsSelect", "2")
         b.wait_val("#coresSelect", "1")
-        b.wait_val("#threadsSelect", "2")
+        b.wait_val("#threadsSelect", "1")
 
         # Save
         b.click("#machines-vcpu-modal-dialog-apply")
@@ -81,7 +82,7 @@ class TestMachinesSettings(VirtualMachinesCase):
         b.wait_not_present("#vcpus-tooltip")
 
         # Check changes
-        b.wait_in_text("#vm-subVmTest1-vcpus-count", "3")
+        b.wait_in_text("#vm-subVmTest1-vcpus-count", "4")
 
         # Check after boot
         # Run VM
@@ -89,20 +90,20 @@ class TestMachinesSettings(VirtualMachinesCase):
         b.wait_in_text("#vm-subVmTest1-state", "Running")
 
         # Check VCPU count
-        b.wait_in_text("#vm-subVmTest1-vcpus-count", "3")
+        b.wait_in_text("#vm-subVmTest1-vcpus-count", "4")
 
         # Open dialog window
         b.click("#vm-subVmTest1-vcpus-count button")
         b.wait_visible(".pf-c-modal-box__body")
 
         # Check basic values
-        b.wait_val("#machines-vcpu-count-field", "3")
+        b.wait_val("#machines-vcpu-count-field", "4")
         b.wait_val("#machines-vcpu-max-field", "4")
 
-        # Check sockets, cores and threads
-        b.wait_val("#socketsSelect", "2")
+        # check sockets, cores and threads
+        b.wait_val("#socketsSelect", "4")
         b.wait_val("#coresSelect", "1")
-        b.wait_val("#threadsSelect", "2")
+        b.wait_val("#threadsSelect", "1")
 
         b.click("#machines-vcpu-modal-dialog-cancel")
         b.wait_not_present("#machines-vcpu-modal-dialog")
@@ -117,9 +118,9 @@ class TestMachinesSettings(VirtualMachinesCase):
 
         b.set_input_text("#machines-vcpu-count-field", "2")
 
-        # Set new socket value
-        b.set_val("#coresSelect", "2")
-        b.wait_val("#socketsSelect", "2")
+        # check new socket value
+        b.wait_val("#coresSelect", "1")
+        b.wait_val("#socketsSelect", "4")
         b.wait_val("#threadsSelect", "1")
 
         # Save
@@ -127,7 +128,7 @@ class TestMachinesSettings(VirtualMachinesCase):
         b.wait_not_present("#machines-vcpu-modal-dialog")
 
         wait(lambda: m.execute(
-            "virsh dumpxml subVmTest1 | tee /tmp/subVmTest1.xml | xmllint --xpath '/domain/cpu/topology[@sockets=\"2\"][@threads=\"1\"][@cores=\"2\"]' -"))
+            "virsh dumpxml subVmTest1 | tee /tmp/subVmTest1.xml | xmllint --xpath '/domain/cpu/topology[@sockets=\"4\"][@threads=\"1\"][@cores=\"1\"]' -"))
 
         # Run VM - this ensures that the internal state is updated before we move on.
         # We need this here because we can't wait for UI updates after we open the modal dialog.
@@ -144,15 +145,15 @@ class TestMachinesSettings(VirtualMachinesCase):
         b.wait_visible(".pf-c-modal-box__body")
 
         # Set new socket value
-        b.wait_val("#coresSelect", "2")
-        b.wait_val("#socketsSelect", "2")
+        b.wait_val("#coresSelect", "1")
+        b.wait_val("#socketsSelect", "4")
         b.wait_val("#threadsSelect", "1")
 
         b.wait_in_text("#vm-subVmTest1-vcpus-count", "2")
 
         # Check value of sockets, threads and cores from VM dumpxml
         m.execute(
-            "virsh dumpxml subVmTest1 | xmllint --xpath '/domain/cpu/topology[@sockets=\"2\"][@threads=\"1\"][@cores=\"2\"]' -")
+            "virsh dumpxml subVmTest1 | xmllint --xpath '/domain/cpu/topology[@sockets=\"4\"][@threads=\"1\"][@cores=\"1\"]' -")
 
         # non-persistent VM doesn't have configurable vcpu
         m.execute("virsh undefine subVmTest1")
@@ -226,26 +227,26 @@ class TestMachinesSettings(VirtualMachinesCase):
         self.performAction("subVmTest1", "forceOff")
         # Warning should dissapear and changes should be visible in the UI
         b.wait_not_present("#cpu-tooltip")
-        b.wait_in_text("#vm-subVmTest1-cpu-model .pf-c-description-list__text", "host")
+        b.wait_in_text("#vm-subVmTest1-cpu-model .pf-c-description-list__text", "host passthrough")
 
         # Choose manually a CPU model
         b.click("#vm-subVmTest1-cpu-model button")
-        b.select_from_dropdown("#cpu-model-select-group select", "coreduo")
+        b.select_from_dropdown("#cpu-model-select-group select", "POWER8")
         b.click("#cpu-config-dialog-apply")
-        b.wait_in_text("#vm-subVmTest1-cpu-model .pf-c-description-list__text", "custom (coreduo)")
+        b.wait_in_text("#vm-subVmTest1-cpu-model .pf-c-description-list__text", "custom (POWER8)")
 
         # Verify libvirt XML
         dom_xml = "virsh dumpxml {0}".format("subVmTest1")
         xmllint_element = "{0} | xmllint --xpath 'string(//domain/{{prop}})' - 2>&1 || true".format(dom_xml)
-        self.assertEqual("coreduo", m.execute(xmllint_element.format(prop='cpu/model')).strip())
+        self.assertEqual("POWER8", m.execute(xmllint_element.format(prop='cpu/model')).strip())
 
-        # Host-model gets expanded  to custom mode when the VM is running
+        # Host-model gets expanded to custom mode when the VM is running
         b.click("#vm-subVmTest1-cpu-model button")
         b.select_from_dropdown("#cpu-model-select-group select", "host-model")
         b.click("#cpu-config-dialog-apply")
         b.wait_in_text("#vm-subVmTest1-cpu-model .pf-c-description-list__text", "host")
         b.click("#vm-subVmTest1-run")
-        b.wait_in_text("#vm-subVmTest1-cpu-model .pf-c-description-list__text", "custom")
+        b.wait_in_text("#vm-subVmTest1-cpu-model .pf-c-description-list__text", "host")
         # In the test ENV libvirt does not properly set the CPU model so we see a tooltip https://bugzilla.redhat.com/show_bug.cgi?id=1913337
         # b.wait_not_present("#cpu-tooltip")
 
@@ -338,7 +339,7 @@ class TestMachinesSettings(VirtualMachinesCase):
 
         # Check memory hotunplugging
         # The balloon driver needs to be loaded to descrease memory
-        wait(lambda: "login as 'cirros' user" in self.machine.execute("cat {0}".format(args["logfile"])), delay=3)
+        wait(lambda: "localhost login" in self.machine.execute("cat {0}".format(args["logfile"])), delay=3)
 
         b.set_input_text("#vm-subVmTest1-memory-modal-memory", str(current_memory - 10))
         b.blur("#vm-subVmTest1-memory-modal-memory")
@@ -384,7 +385,7 @@ class TestMachinesSettings(VirtualMachinesCase):
         b.wait_in_text("#vm-subVmTest1-state", "Running")
         self.goToVmPage("subVmTest1")
 
-        wait(lambda: "login as 'cirros' user" in m.execute("cat {0}".format(args["logfile"])), delay=3)
+        wait(lambda: "localhost login" in m.execute("cat {0}".format(args["logfile"])), delay=3)
 
         # Change CPU model setting
         b.click("#vm-subVmTest1-cpu-model button")

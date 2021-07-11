@@ -147,10 +147,12 @@ class VirtualMachinesCaseHelpers:
         m.execute("virsh net-start default || true")
         m.execute(r"until virsh net-info default | grep 'Active:\s*yes'; do sleep 1; done")
 
-    def createVm(self, name, graphics='none', ptyconsole=False, running=True, memory=128, connection='system', machine=None, os="cirros0.4.0"):
+    # In ppc64le, 128MB memory may cause the VM crash
+    def createVm(self, name, graphics='none', ptyconsole=False, running=True, memory=2048, connection='system', machine=None, os="cirros0.4.0"):
         m = machine or self.machine
 
-        image_file = m.pull("cirros")
+        originalImage = "/var/lib/libvirt/images/ppc64lemini.qcow2"
+        m.execute(f"test -f {originalImage}")
 
         if connection == "system":
             img = f"/var/lib/libvirt/images/{name}-2.img"
@@ -162,7 +164,7 @@ class VirtualMachinesCaseHelpers:
             logPath = f"/home/admin/.local/share/libvirt/console-{name}.log"
             qemuLogPath = f"/home/admin/.local/share/libvirt/qemu/{name}.log"
 
-        m.upload([image_file], img)
+        m.execute(f"cp {originalImage} {img}")
         m.execute(f"chmod 777 {img}")
 
         args = {
@@ -318,14 +320,14 @@ class VirtualMachinesCaseHelpers:
 
     def waitLogFile(self, logfile, expected_text):
         try:
-            testlib.wait(lambda: expected_text in self.machine.execute(f"cat {logfile}"), delay=3)
+            testlib.wait(lambda: expected_text in self.machine.execute(f"cat {logfile}"), delay=5)
         except testlib.Error:
             log = self.machine.execute(f"cat {logfile}")
             print(f"----- log of failed VM ------\n{log}\n---------")
             raise
 
     def waitCirrOSBooted(self, logfile):
-        self.waitLogFile(logfile, "login as 'cirros' user.")
+        self.waitLogFile(logfile, "localhost login")
 
 
 class VirtualMachinesCase(testlib.MachineCase, VirtualMachinesCaseHelpers, storagelib.StorageHelpers, netlib.NetworkHelpers):

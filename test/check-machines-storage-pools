@@ -18,6 +18,7 @@
 # along with Cockpit; If not, see <http://www.gnu.org/licenses/>.
 
 import os
+import time
 
 import machineslib
 import testlib
@@ -28,6 +29,8 @@ class TestMachinesStoragePools(machineslib.VirtualMachinesCase):
 
     def gotoVolumesTab(self, poolName, connectionName="system"):
         selector = f"tr[data-row-id='pool-{poolName}-{connectionName}'] + tr li:contains('Storage volumes')"
+        # Multiple-architecture tests may need a wait here
+        time.sleep(1)
         self.browser.click(selector + " > button")
         self.browser.wait_attr(selector, "class", "pf-v5-c-tabs__item pf-m-current")
 
@@ -509,7 +512,7 @@ class TestMachinesStoragePools(machineslib.VirtualMachinesCase):
         self.addCleanup(m.execute, "virsh pool-destroy nfs-pool || true")  # Destroy pool as it block removal of `nfs_pool`
 
         # Prepare disk/block pool
-        dev = self.add_ram_disk(10)
+        dev = self.add_ram_disk(100)
         self.machine.execute(f"""
             virsh pool-define-as disk-pool disk - - {dev} - {os.path.join(self.vm_tmpdir, 'poolDiskImages')}
             virsh pool-build disk-pool --overwrite

@@ -18,6 +18,7 @@
 # along with Cockpit; If not, see <http://www.gnu.org/licenses/>.
 
 import os
+import time
 
 import machineslib
 import testlib
@@ -28,6 +29,8 @@ class TestMachinesStoragePools(machineslib.VirtualMachinesCase):
 
     def gotoVolumesTab(self, poolName, connectionName="system"):
         selector = f"tr[data-row-id='pool-{poolName}-{connectionName}'] + tr li:contains('Storage volumes')"
+        # s390x maybe need a wait here
+        time.sleep(1)
         self.browser.click(selector + " > button")
         self.browser.wait_attr(selector, "class", "pf-v5-c-tabs__item pf-m-current")
 
@@ -1032,12 +1035,14 @@ class TestMachinesStoragePools(machineslib.VirtualMachinesCase):
                                             xfail=True,
                                             xfail_error="this function is not supported by the connection driver: storage pool does not support vol deletion").execute()
 
+            time.sleep(2)
             StoragePoolsCreationAndDeletion(self,
                                             name="iscsi-pool-2",
                                             pool_type="iscsi",
                                             target="/dev/disk/by-id/",
                                             source_dev=target_iqn).execute()
 
+            time.sleep(2)
             StoragePoolsCreationAndDeletion(self,
                                             name="iscsi-pool-3",
                                             pool_type="iscsi",

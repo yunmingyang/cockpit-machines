@@ -64,7 +64,7 @@ class VirtualMachinesCaseHelpers:
             # https://bugzilla.redhat.com/show_bug.cgi?id=2221144
             # The VM should not be rebooted when the confirmation dialog is shown
             time.sleep(5)
-            self.assertNotIn("Linux version", m.execute(f"cat {logPath}"))
+            self.assertNotIn("LOADPARM", m.execute(f"cat {logPath}"))
 
         # Some actions, which can cause expensive downtime when clicked accidentally, have confirmation dialog
         if action in ["off", "forceOff", "reboot", "forceReboot", "sendNMI"]:
@@ -80,9 +80,10 @@ class VirtualMachinesCaseHelpers:
         if action in ["resume", "run", "reboot", "forceReboot"]:
             b.wait_in_text(f"#vm-{vmName}-{connectionName}-state", "Running")
             if logPath:
-                testlib.wait(lambda: "Linux version" in m.execute(f"cat {logPath}"))
+                testlib.wait(lambda: "LOADPARM" in m.execute(f"cat {logPath}"))
         if action == "forceOff" or action == "off":
-            b.wait_in_text(f"#vm-{vmName}-{connectionName}-state", "Shut off")
+            # In s390x, shut off will take a long time, so use wait function
+            testlib.wait(lambda: "Shut off" in b.text(f"#vm-{vmName}-{connectionName}-state"), delay=3)
 
     def goToVmPage(self, vmName, connectionName='system'):
         self.browser.click(f"tbody tr[data-row-id=\"vm-{vmName}-{connectionName}\"] a.vm-list-item-name")  # click on the row
@@ -156,7 +157,7 @@ class VirtualMachinesCaseHelpers:
                      if ! echo "$out" | grep -q 'Active.*yes'; then virsh net-start default; fi""")
         m.execute(r"until virsh net-info default | grep 'Active:\s*yes'; do sleep 1; done")
 
-    def createVm(self, name, graphics='none', ptyconsole=False, running=True, memory=128, connection='system', machine=None, os=None):
+    def createVm(self, name, graphics='none', ptyconsole=False, running=True, memory=256, connection='system', machine=None, os=None):
         m = machine or self.machine
 
         if os is None:
@@ -164,7 +165,9 @@ class VirtualMachinesCaseHelpers:
             # with i440fx by default there.
             os = "linux2022" if "rhel-8" not in m.image else "linux2016"
 
-        image_file = m.pull("alpine")
+        # image_file = m.pull("alpine")
+        originalImage = "/var/lib/libvirt/images/alpine-3.18.qcow2"
+        m.execute(f"test -f {originalImage}")
 
         if connection == "system":
             img = f"/var/lib/libvirt/images/{name}-2.img"
@@ -176,7 +179,7 @@ class VirtualMachinesCaseHelpers:
             logPath = f"/home/admin/.local/share/libvirt/console-{name}.log"
             qemuLogPath = f"/home/admin/.local/share/libvirt/qemu/{name}.log"
 
-        m.upload([image_file], img)
+        m.execute(f"cp {originalImage} {img}")
         m.execute(f"chmod 777 {img}")
 
         args = {

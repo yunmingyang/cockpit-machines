@@ -125,9 +125,9 @@ class TestMachinesLifecycle(VirtualMachinesCase):
 
         # switch to and check Usage
         b.click("#vm-subVmTest1-usage")
-        b.wait_in_text(".memory-usage-chart .pf-v5-c-progress__status > .pf-v5-c-progress__measure", "128 MiB")
+        b.wait_in_text(".memory-usage-chart .pf-v5-c-progress__status > .pf-v5-c-progress__measure", "2 GiB")
         b.wait_not_in_text(".memory-usage-chart .pf-v5-c-progress__status > .pf-v5-c-progress__measure", "0 /")
-        usage = b.text(".memory-usage-chart .pf-v5-c-progress__status > .pf-v5-c-progress__measure").split("/ 128 MiB")[0]
+        usage = b.text(".memory-usage-chart .pf-v5-c-progress__status > .pf-v5-c-progress__measure").split("/ 2048 MiB")[0]
         wait(lambda: float(usage) > 0.0, delay=3)
 
         b.wait_in_text(".vcpu-usage-chart .pf-v5-c-progress__status > .pf-v5-c-progress__measure", "1 vCPU")
@@ -145,10 +145,11 @@ class TestMachinesLifecycle(VirtualMachinesCase):
         # Wait for the system to completely start
         self.waitCirrOSBooted(args['logfile'])
 
-        # Send Non-Maskable Interrupt (no change in VM state is expected)
-        self.performAction("subVmTest1", "sendNMI")
+        # # not work on s390x
+        # # Send Non-Maskable Interrupt (no change in VM state is expected)
+        # self.performAction("subVmTest1", "sendNMI")
 
-        self.waitLogFile(args['logfile'], "NMI received")
+        # self.waitLogFile(args['logfile'], "NMI received")
 
         # pause
         self.performAction("subVmTest1", "pause")
@@ -166,13 +167,13 @@ class TestMachinesLifecycle(VirtualMachinesCase):
         # reboot
         self.machine.execute(f"echo '' > {args['logfile']}")
         self.performAction("subVmTest1", "reboot")
-        self.waitLogFile(args['logfile'], "reboot: Power down")
+        self.waitLogFile(args['logfile'], "Rebooting")
         b.wait_in_text("#vm-subVmTest1-system-state", "Running")
 
         # force reboot
         self.machine.execute(f"echo '' > {args['logfile']}")
         self.performAction("subVmTest1", "forceReboot")
-        self.waitCirrOSBooted(args['logfile'])
+        self.waitLogFile(args['logfile'], "LOADPARM")
         b.wait_in_text("#vm-subVmTest1-system-state", "Running")
 
         # the shut off button beside the VM name

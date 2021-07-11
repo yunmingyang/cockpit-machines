@@ -72,7 +72,8 @@ class VirtualMachinesCaseHelpers:
         if action == "resume" or action == "run":
             b.wait_in_text(f"#vm-{vmName}-{connectionName}-state", "Running")
         if action == "forceOff" or action == "off":
-            b.wait_in_text(f"#vm-{vmName}-{connectionName}-state", "Shut off")
+            # In s390x, shut off will take a long time, so use wait function
+            testlib.wait(lambda: "Shut off" in b.text(f"#vm-{vmName}-{connectionName}-state"), delay=3)
 
     def goToVmPage(self, vmName, connectionName='system'):
         self.browser.click(f"tbody tr[data-row-id=\"vm-{vmName}-{connectionName}\"] a.vm-list-item-name")  # click on the row
@@ -144,11 +145,11 @@ class VirtualMachinesCaseHelpers:
         m.execute("virsh net-start default || true")
         m.execute(r"until virsh net-info default | grep 'Active:\s*yes'; do sleep 1; done")
 
-    def createVm(self, name, graphics='none', ptyconsole=False, running=True, memory=128, connection='system', machine=None):
+    def createVm(self, name, graphics='none', ptyconsole=False, running=True, memory=4096, connection='system', machine=None, vcpu=2):
         m = machine or self.machine
 
-        image_file = m.pull("cirros")
-
+        originalImage = "/var/lib/libvirt/images/fedora31.qcow2"
+        m.execute(f"test -f {originalImage}")
         if connection == "system":
             img = f"/var/lib/libvirt/images/{name}-2.img"
             logPath = f"/var/log/libvirt/console-{name}.log"
@@ -159,7 +160,7 @@ class VirtualMachinesCaseHelpers:
             logPath = f"/home/admin/.local/share/libvirt/console-{name}.log"
             qemuLogPath = f"/home/admin/.local/share/libvirt/qemu/{name}.log"
 
-        m.upload([image_file], img)
+        m.execute(f"cp {originalImage} {img}")
         m.execute(f"chmod 777 {img}")
 
         args = {
@@ -177,12 +178,12 @@ class VirtualMachinesCaseHelpers:
         command = ["virt-install --connect qemu:///{5} --name {0} "
                    "--os-variant cirros0.4.0 "
                    "--boot hd,network "
-                   "--vcpus 1 "
+                   "--vcpus {6} "
                    "--memory {1} "
                    "--import --disk {2} "
                    "--graphics {3} "
                    "--console {4}"
-                   "--print-step 1 > /tmp/xml-{5}".format(name, memory, img, "none" if graphics == "none" else graphics + ",listen=127.0.0.1", console, connection)]
+                   "--print-step 1 > /tmp/xml-{5}".format(name, memory, img, "none" if graphics == "none" else graphics + ",listen=127.0.0.1", console, connection, vcpu)]
 
         command.append(f"virsh -c qemu:///{connection} define /tmp/xml-{connection}")
         if running:
@@ -322,7 +323,7 @@ class VirtualMachinesCaseHelpers:
             raise
 
     def waitCirrOSBooted(self, logfile):
-        self.waitLogFile(logfile, "login as 'cirros' user.")
+        self.waitLogFile(logfile, "localhost login")
 
 
 class VirtualMachinesCase(testlib.MachineCase, VirtualMachinesCaseHelpers, storagelib.StorageHelpers, netlib.NetworkHelpers):

@@ -142,6 +142,7 @@ class TestMachinesConsoles(VirtualMachinesCase):
 
         # Add a second serial console
         m.execute("virsh destroy vmWithSerialConsole; virt-xml --add-device vmWithSerialConsole --console pty,target_type=virtio; virsh start vmWithSerialConsole")
+        time.sleep(2)
         b.click("#pf-c-console__type-selector")
         b.wait_visible("#pf-c-console__type-selector + .pf-c-select__menu")
         b.click("li:contains('Serial console (console0)') button")

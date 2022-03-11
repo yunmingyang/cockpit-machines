@@ -756,6 +756,14 @@ class TestMachinesDisks(VirtualMachinesCase):
 
         if "debian" not in m.image and "ubuntu" not in m.image:
             # ISCSI driver does not support virStorageVolCreate API
+            # Sometimes, maybe as some race condition, storagePoolGetAll didn't
+            # get the correct pool information, so the vmStoragePools.length = 0
+            # (in diskAdd.jsx, through componentDidMount of this jsx will update vmStoragePools of state
+            # , the length of vmStoragePools is still 0), and storagePoolGetAll
+            # use libvirt-API -- org.libvirt.Connect.ListStoragePools to get the
+            # information of storage pools, so I guess it should be the same with virsh pool-list
+            # Then add then wait here
+            wait(lambda: "iscsi-pool" in m.execute("virsh pool-list --all"))
             self.VMAddDiskDialog(
                 self,
                 pool_name='iscsi-pool',
@@ -894,6 +902,8 @@ class TestMachinesDisks(VirtualMachinesCase):
         m.upload([os.path.join(BOTS_DIR, "machine/cloud-init.iso")], "/var/lib/libvirt/images/defaultVol.iso")
         m.execute("virsh pool-refresh images")
         wait(lambda: "defaultVol.iso" in m.execute("virsh vol-list images"), delay=3)
+        # Sometime defaultVol is not shown, maybe because automation run too fast, so add a sleep here
+        time.sleep(2)
         dialog = self.VMAddDiskDialog(
             self,
             mode="use-existing",

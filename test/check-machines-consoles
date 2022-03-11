@@ -19,6 +19,7 @@
 
 import os
 import sys
+from time import sleep
 
 # import Cockpit's machinery for test VMs and its browser test API
 TEST_DIR = os.path.dirname(__file__)
@@ -26,7 +27,7 @@ sys.path.append(os.path.join(TEST_DIR, "common"))
 sys.path.append(os.path.join(os.path.dirname(TEST_DIR), "bots/machine"))
 
 from machineslib import VirtualMachinesCase  # noqa
-from testlib import nondestructive, test_main, wait, skipImage  # noqa
+from testlib import nondestructive, skipImage, test_main, wait  # noqa
 
 
 @nondestructive
@@ -119,11 +120,12 @@ class TestMachinesConsoles(VirtualMachinesCase):
         b.wait_in_text(f"#{name}-terminal .xterm-accessibility-tree", f"Connected to domain '{name}'")
 
         # in case the OS already finished booting, press Enter into the console to re-trigger the login prompt
-        b.focus(f"#{name}-terminal .xterm-accessibility-tree")
-        b.key_press("\r")
-
-        with b.wait_timeout(60):
-            b.wait_in_text(f"#{name}-terminal .xterm-accessibility-tree", "cirros login")
+        for _ in range(0, 60):
+            b.focus(f"#{name}-terminal .xterm-accessibility-tree")
+            b.key_press("\r")
+            if "cirros login" in b.text(f"#{name}-terminal .xterm-accessibility-tree"):
+                break
+            sleep(1)
 
         b.click(f"#{name}-serialconsole-disconnect")
         b.wait_text(f"#{name}-terminal", "Disconnected from serial console. Click the connect button.")
@@ -139,6 +141,7 @@ class TestMachinesConsoles(VirtualMachinesCase):
         m.execute("virsh destroy vmWithSerialConsole; virt-xml --add-device vmWithSerialConsole --console pty,target_type=virtio; virsh start vmWithSerialConsole")
         b.click("#pf-c-console__type-selector")
         b.wait_visible("#pf-c-console__type-selector + .pf-c-select__menu")
+        sleep(1)
         b.click("li:contains('Serial console (console0)') button")
         b.wait(lambda: m.execute("ps aux | grep 'virsh -c qemu:///system console vmWithSerialConsole console0'"))
         b.click("#pf-c-console__type-selector")

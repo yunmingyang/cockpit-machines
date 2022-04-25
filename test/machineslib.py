@@ -122,7 +122,7 @@ class VirtualMachinesCaseHelpers:
     def createVm(self, name, graphics='none', ptyconsole=False, running=True, memory=128, connection='system'):
         m = self.machine
 
-        image_file = m.pull("cirros")
+        image_file = "/var/lib/libvirt/images/cirros.qcow2"
 
         if connection == "system":
             img = "/var/lib/libvirt/images/{0}-2.img".format(name)
@@ -130,7 +130,7 @@ class VirtualMachinesCaseHelpers:
             m.execute("runuser -l admin -c 'mkdir -p /home/admin/.local/share/libvirt/images'")
             img = "/home/admin/.local/share/libvirt/images/{0}-2.img".format(name)
 
-        m.upload([image_file], img)
+        m.execute(f"test -f {image_file} && cp {image_file} {img}")
         m.execute("chmod 777 {0}".format(img))
 
         args = {

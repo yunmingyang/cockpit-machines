@@ -66,10 +66,11 @@ class TestMachinesHostDevs(VirtualMachinesCase):
                 m.execute("virsh attach-device --domain subVmTest1 --file /tmp/usbhostedxml")
 
                 b.wait_in_text("#vm-subVmTest1-hostdev-1-type", "usb")
+                # TODO: pick up a suitable USB deivce before run the test
                 b.wait_in_text("#vm-subVmTest1-hostdev-1-vendor", "Linux Foundation")
-                b.wait_in_text("#vm-subVmTest1-hostdev-1-product", "1.1 root hub")
+                b.wait_in_text("#vm-subVmTest1-hostdev-1-product", "3.0 root hub")
                 b.wait_in_text("#vm-subVmTest1-hostdev-1-source #1-device", "1")
-                b.wait_in_text("#vm-subVmTest1-hostdev-1-source #1-bus", "1")
+                b.wait_in_text("#vm-subVmTest1-hostdev-1-source #1-bus", "2")
 
         m.execute("virsh destroy subVmTest1")
         b.wait_in_text("#vm-subVmTest1-system-state", "Shut off")

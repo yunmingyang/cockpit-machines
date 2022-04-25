@@ -103,6 +103,7 @@ echo Rebooting in 60 seconds
 sleep 60
 reboot"""
 
+# TODO: pick up a suitable USB deivce before run the test
 USB_HOSTDEV = """<hostdev mode='subsystem' type='usb'>
   <source>
     <vendor id='0x1d6b'/>

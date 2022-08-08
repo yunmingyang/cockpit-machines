@@ -705,6 +705,8 @@ class TestMachinesDisks(VirtualMachinesCase):
         m.upload([os.path.join(BOTS_DIR, "machine/cloud-init.iso")], "/var/lib/libvirt/images/defaultVol.iso")
         m.execute("virsh pool-refresh images")
         wait(lambda: "defaultVol.iso" in m.execute("virsh vol-list images"), delay=3)
+        # Sometime defaultVol is not shown, maybe because automation run too fast, so add a sleep here
+        time.sleep(2)
         dialog = self.VMAddDiskDialog(
             self,
             mode="use-existing",

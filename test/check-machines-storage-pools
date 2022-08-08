@@ -688,6 +688,8 @@ class TestMachinesStoragePools(VirtualMachinesCase):
         m.execute("wipefs -a {0}; pvcreate {0}; vgcreate vol_grp1 {0}".format(dev))
         m.execute("virsh pool-define-as lvm-pool --type logical --source-name vol_grp1; virsh pool-start lvm-pool")
 
+        # Maybe fail to get the capacity of the pool if no sleep here
+        time.sleep(2)
         StorageVolumeCreateDialog(
             self,
             pool_name="lvm-pool",

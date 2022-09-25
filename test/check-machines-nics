@@ -455,7 +455,7 @@ class TestMachinesNICs(VirtualMachinesCase):
         # Remove default vNIC
         self.deleteIface(1)
 
-        # Test Warning message when changes are done in a running VM
+        # Add the NIC for testing
         self.NICAddDialog(
             self,
             source_type="bridge",

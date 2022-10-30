@@ -210,8 +210,10 @@ class VirtualMachinesCaseHelpers:
 
         b.click(f"#delete-vm-subVmTest1-iface-{iface}")
         b.wait_in_text(".pf-c-modal-box .pf-c-modal-box__header .pf-c-modal-box__title", "Remove network interface?")
+        b.wait_present("#delete-resource-modal .pf-c-modal-box__title-icon")
         if mac and vm_name:
             b.wait_in_text(".pf-c-modal-box__body .pf-c-description-list", f"{mac} will be removed from {vm_name}")
+        b.wait_present('#delete-resource-modal button:cantains("Cancel")')
         b.click(".pf-c-modal-box__footer button:contains(Remove)")
         b.wait_not_present(".pf-c-modal-box")
 

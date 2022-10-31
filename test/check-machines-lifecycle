@@ -267,6 +267,7 @@ class TestMachinesLifecycle(VirtualMachinesCase):
 
         self.performAction("old", "rename")
 
+        b.wait_text("h1.pf-c-modal-box__title", "Rename VM old")
         b.set_input_text("#rename-dialog-new-name", "new")
         b.click("#rename-dialog-confirm")
         self.waitVmRow("new")
@@ -282,11 +283,68 @@ class TestMachinesLifecycle(VirtualMachinesCase):
         self.goToVmPage("new")
         self.performAction("new", "rename")
 
+        b.wait_text("h1.pf-c-modal-box__title", "Rename VM new")
         b.set_input_text("#rename-dialog-new-name", "test%")
         b.click("#rename-dialog-confirm")
         b.wait(lambda: "vm?name=test%25&connection=system" in b.eval_js("window.location.href"))
         b.wait_text("h2.vm-name", "test%")
+
+        # No Ooops
+        b.switch_to_top()
         b.wait_not_present("#navbar-oops")
+        b.enter_page('/machines')
+
+        # Run the VM, and the Rename button should not be shown
+        b.click(r"#vm-test\%-system-run")
+        b.wait_visible(r"#vm-test\%-system-shutdown-button")
+        b.click(r"#vm-test\%-system-action-kebab button")
+        b.wait_visible(r"#vm-test\%-system-action-kebab > .pf-c-dropdown__menu")
+        b.wait_not_present(r"#vm-test\%-system-action-kebab-rename")
+
+        # Check that no rename button for a running VM in expand console page
+        b.click(r"#vm-test\%-consoles button:contains(Expand)")
+        b.wait_visible(r"#vm-test\%-consoles-page")
+        b.click(r"#vm-test\%-system-action-kebab button")
+        b.wait_visible(r"#vm-test\%-system-action-kebab > .pf-c-dropdown__menu")
+        b.wait_not_present(r"#vm-test\%-system-action-kebab-rename")
+
+        # Shut off the VM, to check rename button in the expand console page
+        b.click(r"#vm-test\%-system-shutdown-button")
+        b.wait_visible(r"#vm-test\%-system-run")
+        b.click(r"#vm-test\%-system-action-kebab button")
+        b.wait_visible(r"#vm-test\%-system-action-kebab > .pf-c-dropdown__menu")
+        b.click(r"#vm-test\%-system-action-kebab-rename")
+        b.wait_in_text("h1.pf-c-modal-box__title", r"Rename VM test\%")
+
+        # Rename the VM in the Expand console page
+        b.set_input_text("#rename-dialog-new-name", "renamed")
+        b.click("#rename-dialog-confirm")
+        b.wait_text("h2.vm-name", "renamed")
+
+        # Go back to the VM list page
+        b.click("#vm-details a:contains(Virtual machines)")
+        b.wait_visible("#virtual-machines-listing")
+
+        # Click "X" of the dialog
+        self.performAction("renamed", "rename")
+        b.wait_in_text("h1.pf-c-modal-box__title", "Rename VM renamed")
+        b.click(".pf-c-backdrop button.pf-c-button.pf-m-plain")
+        b.wait_not_present("h1.pf-c-modal-box__title")
+        b.wait_visible("#vm-renamed-system-name")
+
+        # Click "Cancel" of the dialog
+        self.performAction("renamed", "rename")
+        b.wait_in_text("h1.pf-c-modal-box__title", "Rename VM renamed")
+        b.click(".pf-c-modal-box__footer button:contains(Cancel)")
+        b.wait_not_present("h1.pf-c-modal-box__title")
+        b.wait_visible("#vm-renamed-system-name")
+
+        # Check that rename button is not shown for a running VM in the VM listing page
+        b.click("#vm-renamed-system-run")
+        b.wait_text("#vm-renamed-system-state", "Running")
+        b.click("#vm-renamed-system-action-kebab button")
+        b.wait_visible("#vm-renamed-system-action-kebab > .pf-c-dropdown__menu")
+        b.wait_not_present("#vm-renamed-system-action-kebab-rename")
 
     def testLibvirt(self):
         b = self.browser

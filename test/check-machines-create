@@ -2038,6 +2038,71 @@ vnc_password= "{vnc_passwd}"
                                               "expired",
                                               False)
 
+    def testGeneralChecksForVMDefaultName(self):
+        b = self.browser
+        m = self.machine
+
+        self.login_and_go("/machines")
+        b.wait_in_text("body", "Virtual machines")
+
+        b.click("#create-new-vm")
+        b.wait_visible("#create-vm-dialog")
+
+        b.wait_attr_contains("#vm-name", "placeholder", "Unique name")
+
+        b.click("#os-select-group > div button")
+        b.click(f"#os-select li:contains('Fedora 33') button")
+        b.wait_attr("#os-select-group input", "value", "Fedora 33")
+        b.wait_attr_contains("#vm-name", "placeholder", "Unique name, default: fedora33-")
+
+        b.click("#os-select-group > div button[aria-label=\"Options menu\"]")
+        b.click(f"#os-select li:contains('CentOS 8') button")
+        b.wait_attr("#os-select-group input", "value", "CentOS 8")
+        b.wait_attr_contains("#vm-name", "placeholder", "Unique name, default: centos8-")
+
+        b.click("#os-select-group > div button[aria-label=\"Clear all\"]")
+        b.wait_attr_contains("#vm-name", "placeholder", "Unique name")
+
+        b.click("#create-and-run")
+        b.wait_in_text("#vm-name-helper", "Name must not be empty")
+        b.wait_in_text("#os-select-helper", "You need to select the most closely matching operating system")
+        b.wait_visible("#create-and-run[aria-disabled=true]")
+        b.wait_visible("#create-and-edit[aria-disabled=true]")
+
+        b.click("#os-select-group > div button[aria-label=\"Options menu\"]")
+        b.click(f"#os-select li:contains('Fedora 33') button")
+        b.wait_attr("#os-select-group input", "value", "Fedora 33")
+        b.wait_attr_contains("#vm-name", "placeholder", "Unique name, default: fedora33-")
+        b.wait_not_present("#vm-name-helper")
+        b.wait_not_present("#os-select-helper")
+
+        b.click("#create-vm-dialog button[aria-label=Close]")
+        b.wait_not_present("#create-vm-dialog")
+
+        b.click("#import-existing-vm")
+        b.wait_visible("#create-vm-dialog")
+        b.wait_attr_contains("#vm-name", "placeholder", "Unique name")
+
+        b.click("#os-select-group > div button")
+        b.click(f"#os-select li:contains('Fedora 33') button")
+        b.wait_attr("#os-select-group input", "value", "Fedora 33")
+        b.wait_attr_contains("#vm-name", "placeholder", "Unique name, default: fedora33-")
+
+        b.click("#os-select-group > div button[aria-label=\"Options menu\"]")
+        b.click(f"#os-select li:contains('CentOS 8') button")
+        b.wait_attr("#os-select-group input", "value", "CentOS 8")
+        b.wait_attr_contains("#vm-name", "placeholder", "Unique name, default: centos8-")
+
+        b.click("#os-select-group > div button[aria-label=\"Clear all\"]")
+        b.wait_attr_contains("#vm-name", "placeholder", "Unique name")
+
+        b.click("#create-and-run")
+        b.wait_in_text("#vm-name-helper", "Name must not be empty")
+        b.wait_in_text("#source-disk-helper", "Disk image path must not be empty")
+        b.wait_in_text("#os-select-helper", "You need to select the most closely matching operating system")
+        b.wait_visible("#create-and-run[aria-disabled=true]")
+        b.wait_visible("#create-and-edit[aria-disabled=true]")
+
 
 if __name__ == '__main__':
     test_main()

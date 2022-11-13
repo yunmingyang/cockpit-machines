@@ -70,6 +70,33 @@ TEST_NETWORK4_XML = """
 </network>
 """
 
+TEST_NETWORK_V6_XML = """
+<network>
+  <name>test_network_v6</name>
+  <ip family='ipv6' address='fd00:e81d:a6d7:55::1' prefix='64'>
+    <dhcp>
+      <range start='fd00:e81d:a6d7:55::100' end='fd00:e81d:a6d7:55::1ff'/>
+    </dhcp>
+  </ip>
+</network>
+"""
+
+TEST_NETWORK_V4_V6_XML = """
+<network>
+  <name>test_network_v4_v6</name>
+  <ip family='ipv6' address='fd00:e81d:a6d7:55::1' prefix='64'>
+    <dhcp>
+      <range start='fd00:e81d:a6d7:55::100' end='fd00:e81d:a6d7:55::1ff'/>
+    </dhcp>
+  </ip>
+  <ip address='192.168.100.1' netmask='255.255.255.0'>
+    <dhcp>
+      <range start='192.168.100.128' end='192.168.100.170'/>
+    </dhcp>
+  </ip>
+</network>
+"""
+
 POOL_XML = """
 <pool type='dir'>
   <name>images</name>

@@ -28,7 +28,7 @@ sys.path.append(os.path.join(os.path.dirname(TEST_DIR), "bots/machine"))
 
 from machineslib import VirtualMachinesCase  # noqa
 from testlib import nondestructive, test_main, wait  # noqa
-from machinesxmls import TEST_NETWORK2_XML, TEST_NETWORK3_XML, TEST_NETWORK4_XML, TEST_NETWORK_XML  # noqa
+from machinesxmls import TEST_NETWORK2_XML, TEST_NETWORK3_XML, TEST_NETWORK4_XML, TEST_NETWORK_XML, TEST_NETWORK_V6_XML, TEST_NETWORK_V4_V6_XML  # noqa
 
 
 def getNetworkDevice(m):
@@ -871,12 +871,36 @@ class TestMachinesNetworks(VirtualMachinesCase):
                 b.wait_in_text(f"#network-{self.network_name}-{self.connection_name}-ipv4-dhcp-host-{self.entry_id}", f"MAC: {self.mac}, IP: {self.ip}")
 
             def cleanup(self):
+                self.openRemovingDialog()
+
+                b.click(".pf-c-modal-box__footer button:contains(Remove)")
+                b.wait_not_present(f"#network-{self.network_name}-{self.connection_name}-ipv4-dhcp-host-{self.entry_id}")
+
+            def openRemovingDialog(self):
                 b.click(f"#delete-network-{self.network_name}-{self.connection_name}-ipv4-dhcp-host-{self.entry_id}-button")
+                b.wait_visible("#delete-resource-modal")
+                b.wait_in_text("#delete-resource-modal .pf-c-modal-box__title-text", "Remove static host from DHCP")
                 b.wait_in_text(".pf-c-modal-box__body .pf-c-description-list", self.ip)
                 b.wait_in_text("#delete-resource-modal-ip", self.ip)
                 b.wait_in_text("#delete-resource-modal-mac", self.mac)
-                b.click(".pf-c-modal-box__footer button:contains(Remove)")
-                b.wait_not_present(f"#network-{self.network_name}-{self.connection_name}-ipv4-dhcp-host-{self.entry_id}")
+
+            def checkButtonsOnRemovingDialog(self):
+                self.open()
+                self.fill()
+                self.add()
+                self.verify_overview()
+
+                self.openRemovingDialog()
+
+                b.click("#delete-resource-modal button[aria-label=Close]")
+                b.wait_not_present("#delete-resource-modal")
+
+                self.openRemovingDialog()
+
+                b.click("#delete-resource-modal button:contains(Cancel)")
+                b.wait_not_present("#delete-resource-modal")
+
+                self.cleanup()
 
         b = self.browser
         m = self.machine
@@ -895,6 +919,14 @@ class TestMachinesNetworks(VirtualMachinesCase):
 
         # Expand row for first network
         self.toggleNetworkRow("default")
+        # Check when no entries
+        b.wait_in_text("#network-default-system-ipv4-dhcp-static", "none")
+
+        NetworkAddStaticDCHPHostsDialog(
+            self,
+            mac=self.getDomainMacAddress("subVmTest1"),
+            ip="192.168.122.123"
+        ).checkButtonsOnRemovingDialog()
 
         # Attach basic static DHCP host and try to remove it
         NetworkAddStaticDCHPHostsDialog(
@@ -922,6 +954,30 @@ class TestMachinesNetworks(VirtualMachinesCase):
         # Check that the static IP is correctly assigned to the VM
         m.execute("virsh start subVmTest1")
         wait(lambda: "1" in self.machine.execute("virsh domifaddr subVmTest1 | grep 192.168.122.222 | wc -l"), delay=3)
+
+        # Check add entries button of a IPv6 only network
+        m.execute(f"echo \"{TEST_NETWORK_V6_XML}\" > /tmp/v6network; virsh net-define /tmp/v6network")
+        self.waitNetworkRow("test_network_v6")
+
+        self.toggleNetworkRow("test_network_v6")
+        b.wait_not_present("#network-test_network_v6-system-static-host-entries-add")
+
+        m.execute("virsh net-start test_network_v6")
+        b.wait_in_text("#network-test_network_v6-system-state", "active")
+        b.wait_not_present("#network-test_network_v6-system-static-host-entries-add")
+
+        # Check add entries button of the network which has both IPv4 and IPv6
+        m.execute(f"echo \"{TEST_NETWORK_V4_V6_XML}\" > /tmp/v4v6network; virsh net-define /tmp/v4v6network")
+        self.waitNetworkRow("test_network_v4_v6")
+
+        self.toggleNetworkRow("test_network_v4_v6")
+        b.wait_visible("#network-test_network_v4_v6-system-static-host-entries-add")
+        b.wait_not_present('h4:contains("IPv6 address") div:contains("Static host entries") + button')
+
+        m.execute("virsh net-start test_network_v4_v6")
+        b.wait_in_text("#network-test_network_v4_v6-system-state", "active")
+        b.wait_visible("#network-test_network_v4_v6-system-static-host-entries-add")
+        b.wait_not_present('h4:contains("IPv6 address") div:contains("Static host entries") + button')
 
 
 if __name__ == '__main__':

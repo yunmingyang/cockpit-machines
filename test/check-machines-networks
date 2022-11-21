@@ -903,6 +903,21 @@ class TestMachinesNetworks(VirtualMachinesCase):
             ip="192.168.122.222",
         ).execute()
 
+        # Attach basic static DHCP host when the network is inactive, then try to remove it
+        b.click("#deactivate-network-default-system")
+        b.wait_in_text("#network-default-system-state", "inactive")
+        NetworkAddStaticDCHPHostsDialog(
+            self,
+            mac="52:54:00:cf:b6:77",
+            ip="192.168.122.222",
+        ).execute()
+        # Check after removing
+        mac = ET.fromstring(m.execute("virsh -c qemu:///system net-dumpxml default")).find(f'./ip/dhcp/host[@mac="52:54:00:cf:b6:77"]')
+        self.assertEqual(mac, None)
+        # Activate the default network
+        b.click("#activate-network-default-system")
+        b.wait_in_text("#network-default-system-state", "active")
+
         # Attach basic static and keep it persistent
         NetworkAddStaticDCHPHostsDialog(
             self,

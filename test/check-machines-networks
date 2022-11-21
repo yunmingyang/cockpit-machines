@@ -923,6 +923,22 @@ class TestMachinesNetworks(VirtualMachinesCase):
         m.execute("virsh start subVmTest1")
         wait(lambda: "1" in self.machine.execute("virsh domifaddr subVmTest1 | grep 192.168.122.222 | wc -l"), delay=3)
 
+        # Remove the entry used by a running VM
+        # There is already a entry
+        b.click("#delete-network-default-system-ipv4-dhcp-host-0-button")
+        b.wait_visible("#delete-resource-modal")
+        b.click("#delete-resource-modal button:contains(Remove)")
+        b.wait_not_present("#delete-resource-modal")
+        b.wait_not_present("#network-default-system-ipv4-dhcp-host-0")
+        # Check the IP of the VM is not changed
+        wait(lambda: "1" in self.machine.execute("virsh domifaddr subVmTest1 | grep 192.168.122.222 | wc -l"), delay=3)
+        # Shut off the VM
+        m.execute("virsh destroy subVmTest1")
+        wait(lambda: "shut off" in m.execute("virsh dominfo subVmTest1 | grep State"))
+        # Re-run the VM
+        m.execute("virsh start subVmTest1")
+        wait(lambda: "running" in m.execute("virsh dominfo subVmTest1 | grep State"))
+
 
 if __name__ == '__main__':
     test_main()

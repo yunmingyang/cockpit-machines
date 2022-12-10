@@ -88,6 +88,21 @@ class TestMachinesCreate(VirtualMachinesCase):
                                                             expected_os_name=config.FEDORA_28,
                                                             pixel_test_tag="auto"))
 
+        # Check some auto detected resources
+        runner.checkAutoDetectedResourceTest(TestMachinesCreate.VmDialog(self,
+                                                                         os_name=config.SUSE_CaaS_Platform_Unknown,
+                                                                         storage_size=20,
+                                                                         storage_size_unit='GiB',
+                                                                         memory_size=2,
+                                                                         memory_size_unit='GiB'))
+
+        runner.checkAutoDetectedResourceTest(TestMachinesCreate.VmDialog(self,
+                                                                         os_name=config.CirrOS_0_5_2,
+                                                                         storage_size=50,
+                                                                         storage_size_unit='MiB',
+                                                                         memory_size=128,
+                                                                         memory_size_unit='MiB'))
+
         # check if older os are filtered
         runner.checkFilteredOsTest(TestMachinesCreate.VmDialog(self, os_name=config.REDHAT_RHEL_4_7_FILTERED_OS,
                                                                pixel_test_tag="filter"))
@@ -731,6 +746,10 @@ vnc_password= "{vnc_passwd}"
 
         MAGEIA_3_FILTERED_OS = 'Mageia 3'
 
+        SUSE_CaaS_Platform_Unknown = "SUSE CaaS Platform Unknown (unknown)"
+
+        CirrOS_0_5_2 = "CirrOS 0.5.2"
+
         WINDOWS_SERVER_10 = 'Microsoft Windows 10'
         WINDOWS_SERVER_10_SHORT = 'win'
 
@@ -915,6 +934,22 @@ vnc_password= "{vnc_passwd}"
             b.click("#os-select-group button[aria-label=\"Clear all\"]")
             b.wait_attr("#os-select-group input", "value", "")
             b.wait_not_present("#navbar-oops")
+
+            return self
+
+        def checkAutoDetectedResource(self):
+            b = self.browser
+
+            b.select_from_dropdown("#source-type", "file")
+
+            b.set_input_text("#os-select-group input", self.os_name)
+            b.click(f"#os-select li button:contains('{self.os_name}')")
+            b.wait_attr_contains("#os-select-group input", "value", self.os_name)
+            # Check auto detected resources
+            b.wait_attr("#storage-limit", "value", self.storage_size)
+            b.wait_attr("#storage-limit-unit-select", "data-value", self.storage_size_unit)
+            b.wait_attr("#memory-size", "value", self.memory_size)
+            b.wait_attr("#memory-size-unit-select", "data-value", self.memory_size_unit)
 
             return self
 
@@ -1642,6 +1677,11 @@ vnc_password= "{vnc_passwd}"
 
         def checkOsInputTest(self, dialog):
             dialog.open().checkOsInput().cancel(True)
+
+            self._assertScriptFinished().checkEnvIsEmpty()
+
+        def checkAutoDetectedResourceTest(self, dialog):
+            dialog.open().checkAutoDetectedResource().cancel(True)
 
             self._assertScriptFinished().checkEnvIsEmpty()
 

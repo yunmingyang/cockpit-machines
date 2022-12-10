@@ -169,10 +169,68 @@ class TestMachinesLifecycle(VirtualMachinesCase):
         b.wait_in_text(".memory-usage-chart .pf-c-progress__status > .pf-c-progress__measure", "0 /")
         b.wait_in_text(".vcpu-usage-chart .pf-c-progress__status > .pf-c-progress__measure", "0%")
 
-        # shut off of a transient VM will redirect us to the main page
+        # some checks for a transient VM
         m.execute("virsh dumpxml subVmTest1 > /tmp/subVmTest1.xml")
         m.execute("virsh start {0}; virsh undefine {0}".format("subVmTest1"))
         b.wait_visible("div[data-vm-transient=\"true\"]")
+
+        # buttons in overview tab should be disabled for a transient VM
+        b.wait_visible("#vm-subVmTest1-memory-count button:disabled")
+        b.wait_visible("#vm-subVmTest1-vcpus-count button:disabled")
+        b.wait_visible("#vm-subVmTest1-cpu-model button[aria-disabled=true]")
+        b.wait_visible("#vm-subVmTest1-boot-order button[aria-disabled=true]")
+        b.wait_not_present("#vm-subVmTest1-autostart-switch")
+
+        # attach disk by "Create new" for a transient VM
+        b.click("#vm-subVmTest1-disks-adddisk")
+        b.wait_visible("#vm-subVmTest1-disks-adddisk-dialog-modal-window")
+        b.wait_not_present("#vm-subVmTest1-disks-adddisk-permanent")
+        b.set_input_text("#vm-subVmTest1-disks-adddisk-new-name", "attachTransient")
+        b.select_from_dropdown("#vm-subVmTest1-disks-adddisk-new-unit", "MiB")
+        b.click("#vm-subVmTest1-disks-adddisk-dialog-add")
+        b.wait_not_present("#vm-subVmTest1-disks-adddisk-dialog-modal-window")
+        b.wait_in_text("#vm-subVmTest1-disks-vdb-source-volume", "attachTransient")
+
+        # detach the disk attached above for a transient VM
+        b.click("#vm-subVmTest1-disks-vdb-action-kebab button")
+        b.click("#delete-vm-subVmTest1-disks-vdb")
+        b.wait_visible("#delete-resource-modal")
+        b.click("#delete-resource-modal button:contains(Remove)")
+        b.wait_not_present("#delete-resource-modal")
+        b.wait_not_present("#vm-subVmTest1-disks-vdb-source-volume")
+
+        # attach disk by "Use existing" for a transient VM
+        b.click("#vm-subVmTest1-disks-adddisk")
+        b.wait_visible("#vm-subVmTest1-disks-adddisk-dialog-modal-window")
+        b.click("#vm-subVmTest1-disks-adddisk-useexisting")
+        b.wait_in_text("#vm-subVmTest1-disks-adddisk-existing-select-volume", "attachTransient")
+        b.click("#vm-subVmTest1-disks-adddisk-dialog-add")
+        b.wait_not_present("#vm-subVmTest1-disks-adddisk-dialog-modal-window")
+        b.wait_in_text("#vm-subVmTest1-disks-vdb-source-volume", "attachTransient")
+
+        # detach the disk attached above for a transient VM
+        b.click("#vm-subVmTest1-disks-vdb-action-kebab button")
+        b.click("#delete-vm-subVmTest1-disks-vdb")
+        b.wait_visible("#delete-resource-modal")
+        b.click("#delete-resource-modal button:contains(Remove)")
+        b.wait_not_present("#delete-resource-modal")
+        b.wait_not_present("#vm-subVmTest1-disks-vdb-source-volume")
+
+        # attach a nic for a transient VM
+        b.click("#vm-subVmTest1-add-iface-button")
+        b.wait_visible("#vm-subVmTest1-add-iface-dialog")
+        b.wait_not_present("#vm-subVmTest1-add-iface-permanent")
+        b.click("#vm-subVmTest1-add-iface-add")
+        b.wait_visible("#vm-subVmTest1-network-2-type")
+
+        # remove the nic attached above for a transient VM
+        b.click("#delete-vm-subVmTest1-iface-2")
+        b.wait_visible("#delete-resource-modal")
+        b.click("#delete-resource-modal button:contains(Remove)")
+        b.wait_not_present("#delete-resource-modal")
+        b.wait_visible("#vm-subVmTest1-network-2-type")
+
+        # shut off of a transient VM will redirect us to the main page
         self.performAction("subVmTest1", "forceOff", checkExpectedState=False)
         b.wait_in_text("#virtual-machines-listing .pf-c-empty-state", "No VM is running")
         m.execute("virsh define --file /tmp/subVmTest1.xml")
@@ -469,6 +527,9 @@ class TestMachinesLifecycle(VirtualMachinesCase):
         b.wait_visible(f"tr[data-row-id=vm-{name}-system][data-vm-transient=true]")
         b.click(f"#vm-{name}-system-action-kebab button")
         b.wait_visible(f"#vm-{name}-system-delete a.pf-m-disabled")
+        b.mouse(f"#vm-{name}-system-delete", "mouseenter")
+        b.wait_in_text("div.pf-c-tooltip__content", "This VM is transient. Shut it down if you wish to delete it.")
+        b.mouse(f"#vm-{name}-system-delete", "mouseleave")
         b.click(f"#vm-{name}-system-forceOff")
         self.waitVmRow(name, 'system', False)
         b.wait_not_present(f'#vm-{name}-system-state button:contains("view more")')

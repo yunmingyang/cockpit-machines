@@ -206,6 +206,11 @@ class TestMachinesCreate(VirtualMachinesCase):
                                                                          ssh_keys=[rsakey]),
                                              {"create-vm-dialog-user-login": "User login must not be empty when SSH keys are set"})
 
+        # Check the details in the middle page after the VM creation
+        runner.checkMiddlePageWhenCreatingTest(TestMachinesCreate.VmDialog(self, sourceType="os"))
+
+        runner.checkMiddlePageWhenCreatingTest(TestMachinesCreate.VmDialog(self, sourceType="disk_image", location=config.NOVELL_MOCKUP_ISO_PATH))
+
     def testCreateNameGeneration(self):
         config = TestMachinesCreate.TestCreateConfig
         runner = TestMachinesCreate.CreateVmRunner(self)
@@ -1102,6 +1107,58 @@ vnc_password= "{vnc_passwd}"
 
             return self
 
+        def checkMiddlePageWhenCreating(self):
+            b = self.browser
+            buttonSelector = "#create-and-run" if self.create_and_run else "#create-and-edit"
+
+            b.click(buttonSelector)
+
+            b.wait_visible(f"h1:contains(\"Creating VM {self.name}\")")
+            b.wait_visible("button:contains(\"Go to VMs list\")")
+
+            b.click("button:contains(\"Go to VMs list\")")
+
+            b.wait_visible("#virtual-machines-listing")
+            b.wait_in_text(f"#vm-{self.name}-system-state", "Creating VM")
+
+            b.click(f"#vm-{self.name}-system-name")
+
+            b.wait_visible(f"h1:contains(\"Creating VM {self.name}\")")
+            b.wait_visible("button:contains(\"Go to VMs list\")")
+
+            b.click("button:contains(\"Go to VMs list\")")
+
+            b.wait_visible("#virtual-machines-listing")
+
+            b.wait_in_text(f"#vm-{self.name}-system-state", "Shut off")
+            b.click(f"#vm-{self.name}-system-name")
+
+            b.wait_visible("#vm-details")
+
+            b.click(f"#vm-{self.name}-system-action-kebab button")
+            b.click(f"#vm-{self.name}-system-delete")
+            b.wait_visible(f"#vm-{self.name}-delete-modal-dialog")
+            b.set_checked(f"#vm-{self.name}-delete-modal-dialog input[name=check-action-vda]", False)
+            b.click(f"#vm-{self.name}-delete-modal-dialog button:contains(\"Delete\")")
+
+            b.wait_visible("#virtual-machines-listing")
+            b.wait_not_present(f"#vm-{self.name}-system-state")
+
+            self.open().fill()
+            b.click(buttonSelector)
+
+            b.wait_visible(f"h1:contains(\"Creating VM {self.name}\")")
+            b.wait_visible("button:contains(\"Go to VMs list\")")
+            b.wait_visible("#vm-details")
+
+            b.click(f"#vm-{self.name}-system-action-kebab button")
+            b.click(f"#vm-{self.name}-system-delete")
+            b.wait_visible(f"#vm-{self.name}-delete-modal-dialog")
+            b.set_checked(f"#vm-{self.name}-delete-modal-dialog input[name=check-action-vda]", False)
+            b.click(f"#vm-{self.name}-delete-modal-dialog button:contains(\"Delete\")")
+
+            return self
+
         def checkOsFiltered(self, present=False):
             b = self.browser
 
@@ -1843,6 +1900,11 @@ vnc_password= "{vnc_passwd}"
 
         def checkPasswordsAreNotResetTest(self, dialog):
             dialog.open().checkPasswordsAreNotReset().cancel(True)
+
+            self._assertScriptFinished().checkEnvIsEmpty()
+
+        def checkMiddlePageWhenCreatingTest(self, dialog):
+            dialog.open().fill().checkMiddlePageWhenCreating()
 
             self._assertScriptFinished().checkEnvIsEmpty()
 

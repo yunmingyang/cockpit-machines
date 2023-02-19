@@ -54,6 +54,8 @@ class TestMachinesCreate(VirtualMachinesCase):
         # test create and import [VM] buttons show appropriate tooltips when hovered over
         runner.createAndImportTooltipsTest()
 
+        runner.dialogCheckTest()
+
         # test just the DIALOG CREATION and cancel
         print("    *\n    * validation errors and ui info/warn messages expected:\n    * ")
         runner.cancelDialogTest(TestMachinesCreate.VmDialog(self, sourceType='file',
@@ -1697,6 +1699,19 @@ vnc_password= "{vnc_passwd}"
             b.mouse("#create-new-vm", "mouseenter")
             b.wait_in_text("#create-button-tooltip", "medium")
             b.mouse("#create-new-vm", "mouseleave")
+
+        def dialogCheckTest(self):
+            b = self.browser
+
+            b.click("#create-new-vm")
+            b.wait_visible("#create-vm-dialog")
+
+            b.wait_visible("#create-vm-dialog button:contains(Automation)")
+
+            b.click("#import-existing-vm")
+            b.wait_visible("#create-vm-dialog")
+
+            b.wait_not_present("#create-vm-dialog button:contains(Automation)")
 
         def checkDialogInvalidOfflineToken(self, dialog, error_msg, create_disabled):
             b = self.browser

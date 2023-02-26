@@ -119,7 +119,7 @@ class VirtualMachinesCaseHelpers:
         m.execute("virsh net-start default || true")
         m.execute(r"until virsh net-info default | grep 'Active:\s*yes'; do sleep 1; done")
 
-    def createVm(self, name, graphics='none', ptyconsole=False, running=True, memory=128, connection='system'):
+    def createVm(self, name, graphics='none', ptyconsole=False, running=True, memory=128, connection='system', watchdogAction=None):
         m = self.machine
 
         image_file = m.pull("cirros")
@@ -143,6 +143,8 @@ class VirtualMachinesCaseHelpers:
             console = "pty,target.type=virtio "
         else:
             console = "file,target.type=serial,source.path={} ".format(args["logfile"])
+        if watchdogAction:
+            watchdog = f"i6300esb,action={watchdogAction}"
 
         command = ["virt-install --connect qemu:///{5} --name {0} "
                    "--os-variant cirros0.4.0 "
@@ -152,7 +154,8 @@ class VirtualMachinesCaseHelpers:
                    "--import --disk {2} "
                    "--graphics {3} "
                    "--console {4}"
-                   "--print-step 1 > /tmp/xml-{5}".format(name, memory, img, "none" if graphics == "none" else graphics + ",listen=127.0.0.1", console, connection)]
+                   "--watchdog {6}"
+                   "--print-step 1 > /tmp/xml-{5}".format(name, memory, img, "none" if graphics == "none" else graphics + ",listen=127.0.0.1", console, connection, watchdog)]
 
         command.append(f"virsh -c qemu:///{connection} define /tmp/xml-{connection}")
         if running:

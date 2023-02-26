@@ -614,6 +614,18 @@ class TestMachinesSettings(VirtualMachinesCase):
         # Check rebooting machine will not unexpectedly affect watchdog configuration
         setWatchdogActionLive(action="poweroff", reboot_machine=True)
 
+    def testCreateVMWithWatchdog(self):
+        b = self.browser
+
+        self.createVm("subVmTest1", watchdogAction="poweroff")
+
+        self.login_and_go("/machines")
+        self.waitPageInit()
+        self.goToVmPage("subVmTest1")
+
+        b.wait_in_text("#vm-subVmTest1-watchdog-state", "Power off")
+        b.wait_text("vm-test-watchdog-button", "edit")
+
 
 if __name__ == '__main__':
     test_main()

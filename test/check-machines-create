@@ -1533,6 +1533,16 @@ vnc_password= "{vnc_passwd}"
 
             self.test_obj.performAction(dialog.name, "delete", connectionName=dialog.connection)
             b.wait_visible(f"#vm-{dialog.name}-delete-modal-dialog")
+
+            # Check the dialog content
+            b.wait_in_text(f"#vm-{dialog.name}-delete-modal-dialog", f"Delete {dialog.name} VM?")
+            if dialog.create_and_run:
+                # Check the hint when the VM is running
+                b.wait_in_text(
+                    f"#vm-{dialog.name}-delete-modal-dialog .pf-c-form__group-control p",
+                    "The VM test is running and will be forced off before deletion.")
+            b.wait_visible(f"#vm-{dialog.name}-delete-modal-dialog button:contains(Cancel)")
+
             b.click(f"#vm-{dialog.name}-delete-modal-dialog button:contains(Delete)")
             b.wait_not_present(f"#vm-{dialog.name}-delete-modal-dialog")
 

@@ -1713,6 +1713,69 @@ vnc_password= "{vnc_passwd}"
 
             dialog.cancel()
 
+        def checkDownloadRHELGenerally(self):
+            b = self.browser
+            config = TestMachinesCreate.TestCreateConfig
+
+            def setOS(osname):
+                # When there is already a OS, #os-select-group > div button will cause an ambiguous
+                b.click("#os-select-group > div button[aria-haspopup=listbox]")
+                b.click(f"#os-select li:contains('{osname}') button")
+                b.wait_attr("#os-select-group input", "value", osname)
+
+            def closeDialog():
+                b.click("#create-vm-dialog > button")
+                b.wait_not_present("#create-vm-dialog")
+
+            b.click("#import-existing-vm")
+            b.wait_visible("#create-vm-dialog")
+
+            b.wait_not_present("#offline-token-group")
+
+            closeDialog()
+
+            b.click("#create-new-vm")
+            b.wait_visible("#create-vm-dialog")
+
+            b.wait_not_present("#offline-token-group")
+            b.select_from_dropdown("#source-type", "cloud")
+            b.wait_not_present("#offline-token-group")
+            b.select_from_dropdown("#source-type", "file")
+            b.wait_not_present("#offline-token-group")
+            b.select_from_dropdown("#source-type", "url")
+            b.wait_not_present("#offline-token-group")
+            b.select_from_dropdown("#source-type", "pxe")
+            b.wait_not_present("#offline-token-group")
+
+            b.select_from_dropdown("#source-type", "os")
+            setOS(config.RHEL_8_2)
+
+            b.wait_visible("#offline-token-group")
+            b.wait_in_text("#token-helper-message", "Get a new RHSM token. Then copy and paste it above.")
+            b.wait_attr("#token-helper-message a", "href", "https://access.redhat.com/management/api")
+
+            b.set_input_text("#offline-token", "invalid")
+            b.wait_in_text("#token-helper-message", "Error checking token")
+
+            b.select_from_dropdown("#source-type", "cloud")
+            b.wait_not_present("#offline-token-group")
+
+            b.select_from_dropdown("#source-type", "os")
+            b.wait_in_text("#offline-token", "invalid")
+
+            setOS(config.CENTOS_7)
+            b.wait_not_present("#offline-token-group")
+
+            setOS(config.RHEL_8_2)
+            b.wait_visible("#offline-token-group")
+            b.wait_in_text("#offline-token", "invalid")
+
+            setOS(config.RHEL_8_1)
+            b.wait_visible("#offline-token-group")
+            b.wait_in_text("#offline-token", "invalid")
+
+            closeDialog()
+
         def cancelDialogTest(self, dialog):
             dialog.open() \
                 .fill() \
@@ -1994,6 +2057,8 @@ vnc_password= "{vnc_passwd}"
         self.waitPageInit()
 
         m.execute(f"qemu-img create {TestMachinesCreate.TestCreateConfig.VALID_DISK_IMAGE_PATH} 500M")
+
+        runner.checkDownloadRHELGenerally()
 
         runner.checkDialogInvalidOfflineToken(TestMachinesCreate.VmDialog(self, sourceType='os',
                                                                           os_name=config.RHEL_8_1,

@@ -54,6 +54,9 @@ class TestMachinesCreate(VirtualMachinesCase):
         # test create and import [VM] buttons show appropriate tooltips when hovered over
         runner.createAndImportTooltipsTest()
 
+        # test that checking path hint for "Disk image" input of VM creation dialog
+        runner.checkImagePathHint()
+
         # test just the DIALOG CREATION and cancel
         print("    *\n    * validation errors and ui info/warn messages expected:\n    * ")
         runner.cancelDialogTest(TestMachinesCreate.VmDialog(self, sourceType='file',
@@ -1707,6 +1710,22 @@ vnc_password= "{vnc_passwd}"
             b.mouse("#create-new-vm", "mouseenter")
             b.wait_in_text("#create-button-tooltip", "medium")
             b.mouse("#create-new-vm", "mouseleave")
+
+        def checkImagePathHint(self):
+            b = self.browser
+
+            b.click("#import-existing-vm")
+            b.wait_visible("#create-vm-dialog")
+
+            b.set_file_autocomplete_val("#source-disk-group", "/var/lib/libvirt/images/")
+            b.set_input_text("#source-disk-group input", "example.img/", append=True, value_check=False)
+            b.wait_in_text("#source-disk-group  button.pf-c-select__menu-item.pf-m-disabled", "No such file or directory")
+
+            b.set_input_text("#source-disk-group input", "", append=True, value_check=False)
+            b.wait_visible('#source-disk-group  li:contains("example.img")')
+
+            b.click(".pf-c-modal-box__footer button:contains(Cancel)")
+            b.wait_not_present("#create-vm-dialog")
 
         def checkDialogInvalidOfflineToken(self, dialog, error_msg, create_disabled):
             b = self.browser

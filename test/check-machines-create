@@ -1696,6 +1696,21 @@ vnc_password= "{vnc_passwd}"
                 if check_env_empty:
                     self.checkEnvIsEmpty(dialog)
 
+        def createWithExistingRHELBootImage(self, dialog):
+            b = self.browser
+
+            dialog.open().fill()
+            if dialog.create_and_run:
+                b.click(".pf-c-modal-box__footer button:contains(Create and run)")
+            else:
+                b.click(".pf-c-modal-box__footer button:contains(Create and edit)")
+
+            while b.text(f"#vm-{dialog.name}-{dialog.connection}-state") != "Running":
+                self.test_obj.assertNotIn("Download",
+                                          b.text(f"#vm-{dialog.name}-{dialog.connection}-state"))
+
+            self._deleteVm(dialog)
+
         def createAndImportTooltipsTest(self):
             b = self.browser
 
@@ -2044,6 +2059,13 @@ vnc_password= "{vnc_passwd}"
                                                       offline_token="valid_token",
                                                       offline_token_autofilled=False,
                                                       create_and_run=False))
+
+        runner.createWithExistingRHELBootImage(TestMachinesCreate.VmDialog(self,
+                                                                           sourceType='os',
+                                                                           os_name=config.RHEL_8_1,
+                                                                           offline_token="valid_token",
+                                                                           offline_token_autofilled=True,
+                                                                           create_and_run=True))
 
         m.execute("rm /var/lib/libvirt/images/rhel-8-1-boot.iso")
 

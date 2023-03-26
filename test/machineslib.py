@@ -14,6 +14,7 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with Cockpit; If not, see <http://www.gnu.org/licenses/>.
+import xml.etree.ElementTree as ET
 
 from testlib import MachineCase
 from netlib import NetworkHelpers
@@ -268,6 +269,21 @@ class VirtualMachinesCaseHelpers:
         # and on certain distribution supports only https (not http)
         # see: block-drv-ro-whitelist option in qemu-kvm.spec for certain distribution
         return self.machine.spawn(f"cd /var/lib/libvirt; exec python3 {self.vm_tmpdir}/{mock_server_filename} {self.vm_tmpdir}/server.crt {self.vm_tmpdir}/server.key", "httpsserver")
+
+    def getDomainMaxVCPUNum(self, vmname):
+        m = self.machine
+
+        domXML = m.execute(f"virsh dumpxml {vmname}")
+        domRoot = ET.fromstring(domXML)
+
+        domType = domRoot.find("os").find("type")
+        domArch = domType.attrib['arch']
+        domMachType = domType.attrib['machine']
+
+        hostXML = m.execute(f"gdbus call --system --dest org.libvirt --object-path /org/libvirt/QEMU --method org.libvirt.Connect.GetDomainCapabilities '' {domArch} {domMachType} '' 0")
+        hostRoot = ET.fromstring(hostXML.split("(")[-1].split(")")[0].replace("\\n", "\r").split(",")[0].split("\"")[1])
+
+        return hostRoot.find("vcpu[@max]").attrib['max']
 
 
 class VirtualMachinesCase(MachineCase, VirtualMachinesCaseHelpers, StorageHelpers, NetworkHelpers):

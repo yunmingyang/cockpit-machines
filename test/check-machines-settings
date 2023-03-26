@@ -57,6 +57,11 @@ class TestMachinesSettings(VirtualMachinesCase):
 
         b.wait_visible("#machines-vcpu-modal-dialog")
 
+        # Check max number of vcpu
+        b.click("label[for=machines-vcpu-max-field] + button")
+        b.wait_visible("div.pf-c-popover.pf-m-top")
+        b.wait_in_text("div.pf-c-popover__body", self.getDomainMaxVCPUNum("subVmTest1"))
+
         # Test basic vCPU properties
         b.wait_val("#machines-vcpu-count-field", "1")
         b.wait_val("#machines-vcpu-max-field", "1")

@@ -140,6 +140,13 @@ class TestMachinesConsoles(VirtualMachinesCase):
         b.assert_pixels("#vm-vmWithSerialConsole-consoles-page", "vm-details-console-serial",
                         ignore=[".pf-c-console__vnc"], skip_layouts=["rtl"])
 
+        # Disconnect/Connect in expand page
+        b.click('#test-system-vnc-sendkey ~ button')
+        b.wait_in_text("#virtual-machines-page .pf-c-empty-state__body", "Disconnected")
+        b.click(".pf-c-empty-state__content button")
+        b.wait_not_present("#virtual-machines-page .pf-c-empty-state__body")
+        b.wait_not_present(".pf-c-empty-state__content button")
+
         # Add a second serial console
         m.execute("virsh destroy vmWithSerialConsole; virt-xml --add-device vmWithSerialConsole --console pty,target_type=virtio; virsh start vmWithSerialConsole")
         b.click("#pf-c-console__type-selector")

@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Cockpit; If not, see <http://www.gnu.org/licenses/>.
 
+import time
+
 from machineslib import VirtualMachinesCase
 from testlib import nondestructive, skipImage, test_main, wait
 
@@ -136,6 +138,8 @@ class TestMachinesLifecycle(VirtualMachinesCase):
         wait(lambda: float(usage) <= 100.0, delay=3)
 
         # suspend/resume
+        # Sometimes suspend will not take effort if operating right now, so add a sleep here
+        time.sleep(2)
         m.execute("virsh suspend subVmTest1")
         b.wait_in_text("#vm-subVmTest1-system-state", "Paused")
         # resume sometimes fails with "unable to execute QEMU command 'cont': Resetting the Virtual Machine is required"
@@ -271,8 +275,15 @@ class TestMachinesLifecycle(VirtualMachinesCase):
 
         # Check correctness of the toast notifications list
         # We 'll create errors by starting to start domains when the default network in inactive
+        # Sometime the connection with libvirt will be lost if these command in one line, so separate them and add sleep between them
         self.createVm("subVmTest3")
-        m.execute("virsh destroy subVmTest2; virsh destroy subVmTest3; virsh net-destroy default")
+        time.sleep(2)
+        m.execute("virsh destroy subVmTest2")
+        time.sleep(2)
+        m.execute("virsh destroy subVmTest3")
+        time.sleep(2)
+        m.execute("virsh net-destroy default")
+        time.sleep(2)
 
         def tryRunDomain(index, name, connection):
             self.waitVmRow(name)

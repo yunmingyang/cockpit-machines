@@ -75,7 +75,7 @@ class VirtualMachinesCaseHelpers(testlib.MachineCase):
             # https://bugzilla.redhat.com/show_bug.cgi?id=2221144
             # The VM should not be rebooted when the confirmation dialog is shown
             time.sleep(5)
-            self.assertNotIn("Linux version", m.execute(f"cat {logPath}"))
+            self.assertNotIn("SYSLINUX", m.execute(f"cat {logPath}"))
 
         # Some actions, which can cause expensive downtime when clicked accidentally, have confirmation dialog
         if action in ["off", "forceOff", "reboot", "forceReboot", "sendNMI"]:
@@ -91,7 +91,7 @@ class VirtualMachinesCaseHelpers(testlib.MachineCase):
         if action in ["resume", "run", "reboot", "forceReboot"]:
             b.wait_in_text(f"#vm-{vmName}-{connectionName}-state", "Running")
             if logPath:
-                testlib.wait(lambda: "Linux version" in m.execute(f"cat {logPath}"))
+                testlib.wait(lambda: "SYSLINUX" in m.execute(f"cat {logPath}"))
         if action == "forceOff" or action == "off":
             b.wait_in_text(f"#vm-{vmName}-{connectionName}-state", "Shut off")
 
@@ -192,7 +192,9 @@ class VirtualMachinesCaseHelpers(testlib.MachineCase):
             # with i440fx by default there.
             os = "linux2022" if "rhel-8" not in m.image else "linux2016"
 
-        image_file = m.pull("alpine")
+        # Don't upload as sometimes it cost too much time
+        # image_file = m.pull("alpine")
+        image_file = "/var/lib/libvirt/images/test.qcow2"
 
         if connection == "system":
             img = f"/var/lib/libvirt/images/{name}-2.img"
@@ -204,7 +206,8 @@ class VirtualMachinesCaseHelpers(testlib.MachineCase):
             logPath = f"/home/admin/.local/share/libvirt/console-{name}.log"
             qemuLogPath = f"/home/admin/.local/share/libvirt/qemu/{name}.log"
 
-        m.upload([image_file], img)
+        # m.upload([image_file], img)
+        m.execute(f"cp {image_file} {img}")
         m.execute(f"chmod 777 {img}")
 
         args: Mapping[str, str | int] = {
@@ -391,7 +394,7 @@ class VirtualMachinesCase(VirtualMachinesCaseHelpers, storagelib.StorageHelpers,
     def setUp(self) -> None:
         super().setUp()
 
-        for m in self.machines.values():
+        # for m in self.machines.values():
             # We don't want nested KVM since it doesn't work well enough
             # three levels deep.
             #
@@ -413,7 +416,8 @@ class VirtualMachinesCase(VirtualMachinesCaseHelpers, storagelib.StorageHelpers,
             # does not exist in the first place and we don't need to be
             # careful to leave it in place.
             #
-            m.execute("rm -f /dev/kvm")
+            # Keep /dev/kvm as bare mental
+            # m.execute("rm -f /dev/kvm")
 
         m = self.machine
 

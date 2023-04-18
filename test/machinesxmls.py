@@ -128,7 +128,7 @@ reboot"""
 USB_HOSTDEV = """<hostdev mode='subsystem' type='usb'>
   <source>
     <vendor id='0x1d6b'/>
-    <product id='0x0001'/>
+    <product id='0x0003'/>
   </source>
 </hostdev>"""
 

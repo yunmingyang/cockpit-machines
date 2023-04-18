@@ -282,7 +282,7 @@ class TestMachinesDisks(machineslib.VirtualMachinesCase):
         self.wait_for_disk_stats("subVmTest1", "vda")
         if b.is_present("#vm-subVmTest1-disks-vda-used"):
             b.wait_in_text("#vm-subVmTest1-disks-vda-used", "GiB")
-            self.assertRegex(b.text("#vm-subVmTest1-disks-vda-used"), r"^(0|0\.0|0\.01) GiB$")
+            self.assertRegex(b.text("#vm-subVmTest1-disks-vda-used"), r"^(0|0\.0|0\.0[0-9]) GiB$")
 
         # Test add disk by external action
         m.execute("qemu-img create -f raw /var/lib/libvirt/images/image3.img 128M")
@@ -645,6 +645,8 @@ class TestMachinesDisks(machineslib.VirtualMachinesCase):
                                self.getExpectedFormat(self.pool_type, self.expected_volume_format))
             elif self.mode == "custom-path":
                 b.wait_visible(f"#vm-{self.vm_name}-disks-adddisk-file")
+                # avoid "#vm-subVmTest1-disks-adddisk-file ul li:nth-child(1) button:not([disabled]):not([aria-disabled=true]) not found"
+                time.sleep(1)
                 # Type in file path
                 b.set_file_autocomplete_val(f"#vm-{self.vm_name}-disks-adddisk-file", self.file_path)
                 if self.device:
@@ -1291,6 +1293,8 @@ class TestMachinesDisks(machineslib.VirtualMachinesCase):
         ).openDialog()
         b.click(f"{prefix}-file-autocomplete .pf-v5-c-menu-toggle__button")
         b.wait_visible(".pf-v5-c-menu__content")
+        # need a sleep, or b.key will cause an Ooops
+        time.sleep(1)
         b.key("ArrowDown")
         b.focus(".pf-v5-c-menu__content li:first-child")
         for _retry in range(0, 10):

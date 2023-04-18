@@ -796,6 +796,7 @@ class TestMachinesStoragePools(VirtualMachinesCase):
 
                     if self.pool_type == "iscsi":
                         wait(lambda: "unit:0:0:0" in m.execute(f"virsh pool-refresh {self.name}; virsh vol-list {self.name}"))
+                        wait(lambda: "0 / 0" not in b.text(f'tr[data-row-id="pool-{self.name}-{self.connection}"] td[data-label="Size"]'))
                     elif self.vol_name:
                         if self.vol_name not in m.execute(f"virsh vol-list {self.name}"):
                             m.execute(f"virsh vol-create-as {self.name} {self.vol_name} 1M")

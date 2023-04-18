@@ -18,6 +18,7 @@
 # along with Cockpit; If not, see <http://www.gnu.org/licenses/>.
 
 import json
+import time
 
 import machineslib
 import testlib
@@ -291,6 +292,8 @@ class TestMachinesNICs(machineslib.VirtualMachinesCase):
         self.login_and_go("/machines")
         self.waitPageInit()
 
+        # If no this sleep, the adding NIC button is disabled, not sure the reason
+        time.sleep(1)
         self.goToVmPage("subVmTest1")
         self.deleteIface(1)  # Remove default vNIC
 

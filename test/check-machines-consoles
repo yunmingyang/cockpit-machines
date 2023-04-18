@@ -56,7 +56,7 @@ fullscreen=0
     def testExternalConsole(self):
         b = self.browser
 
-        self.createVm("subVmTest1", graphics="spice")
+        self.createVm("subVmTest1", graphics="vnc")
 
         self.login_and_go("/machines")
         self.waitPageInit()
@@ -239,7 +239,7 @@ fullscreen=0
     def testMultiHostExternalConsole(self):
         b = self.browser
 
-        my_ip = "172.27.0.15"
+        my_ip = os.getenv("REMOTE_MACHINE")
         name = "subVmTest1"
 
         self.setup_ssh_auth()
@@ -281,7 +281,7 @@ fullscreen=0
 
         host = f"admin@{my_ip}"
 
-        b.add_machine(host, password=None, known_host=True, expect_warning=False)
+        b.add_machine(host, password=os.getenv("REMOTE_PASSWORD"), known_host=True, expect_warning=False)
 
         b.go(f"/@{host}/machines")
         b.enter_page("/machines", host=host)

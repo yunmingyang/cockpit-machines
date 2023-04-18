@@ -1416,6 +1416,7 @@ class TestMachinesDisks(VirtualMachinesCase):
         b.wait_visible("#vm-subVmTest1-disks-vdc-device")
         b.wait_visible("#vm-subVmTest1-disks-vdc-action-kebab")
         b.click("#vm-subVmTest1-disks-vdc-action-kebab button")
+        time.sleep(2)
         b.wait_visible("#delete-vm-subVmTest1-disks-vdc")
         b.click("#delete-vm-subVmTest1-disks-vdc")
         b.wait_visible(".pf-c-modal-box")

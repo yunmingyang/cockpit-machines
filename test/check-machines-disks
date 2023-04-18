@@ -1415,6 +1415,7 @@ class TestMachinesDisks(VirtualMachinesCase):
 
         b.wait_visible("#vm-subVmTest1-disks-vdc-action-kebab")
         b.click("#vm-subVmTest1-disks-vdc-action-kebab button")
+        time.sleep(2)
         b.wait_visible("#vm-subVmTest1-disks-vdc-device")
         b.click("#delete-vm-subVmTest1-disks-vdc")
         b.wait_visible(".pf-c-modal-box")
@@ -1468,6 +1469,7 @@ class TestMachinesDisks(VirtualMachinesCase):
         def removeDiskAndChecks(target, path):
             b.wait_visible(f"#vm-subVmTest1-disks-{target}-action-kebab")
             b.click(f"#vm-subVmTest1-disks-{target}-action-kebab button")
+            time.sleep(2)
             b.wait_visible(f"#delete-vm-subVmTest1-disks-{target}")
             b.click(f"#delete-vm-subVmTest1-disks-{target}")
             b.wait_in_text("div[role=dialog]:contains(\"Remove disk\")", target)

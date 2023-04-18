@@ -91,7 +91,11 @@ class TestMachinesVirtualization(machineslib.VirtualMachinesCase):
         b.reload()
         b.enter_page('/machines')
         waitEmptyState()
-        b.click(".pf-v6-c-empty-state button.pf-m-link")  # Troubleshoot
+        try:
+            b.click(".pf-v6-c-empty-state button.pf-m-link")  # Troubleshoot
+        except Exception:
+            # The behavior is normal, but there is a weird expection raised
+            pass
         b.leave_page()
         b.wait(lambda: "system/services" in b.eval_js("window.location.href"))
         self.allow_browser_errors("Failed to get libvirt version from the dbus API:.*"

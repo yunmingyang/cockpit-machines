@@ -31,7 +31,10 @@ import AddHostDev from "./hostDevAdd.jsx";
 import { domainGet, domainDetachHostDevice } from '../../../libvirtApi/domain.js';
 import { nodeDeviceGetAll } from '../../../libvirtApi/nodeDevice.js';
 import { DeleteResourceButton } from '../../common/deleteResource.jsx';
+<<<<<<< HEAD
 import store from "../../../store.js";
+=======
+>>>>>>> 3bef3159 (remove debug code)
 
 const _ = cockpit.gettext;
 

@@ -19,6 +19,7 @@
 
 import os
 import time
+from unittest import skip
 import xml.etree.ElementTree as ET
 
 import machineslib
@@ -56,7 +57,7 @@ fullscreen=0
     def testExternalConsole(self):
         b = self.browser
 
-        self.createVm("subVmTest1", graphics="spice")
+        self.createVm("subVmTest1", graphics="vnc")
 
         self.login_and_go("/machines")
         self.waitPageInit()
@@ -289,11 +290,12 @@ fullscreen=0
         self.allow_browser_errors("Disconnection timed out.",
                                   "Failed when connecting: Connection closed")
 
+    @skip("no enough resources")
     @testlib.skipBeiboot("multi-host config not supported in beiboot scenario")
     def testMultiHostExternalConsole(self):
         b = self.browser
 
-        my_ip = "172.27.0.15"
+        my_ip = os.getenv("REMOTE_MACHINE")
         name = "subVmTest1"
 
         self.setup_ssh_auth()
@@ -335,7 +337,7 @@ fullscreen=0
 
         host = f"admin@{my_ip}"
 
-        b.add_machine(host, password=None, known_host=True, expect_warning=False)
+        b.add_machine(host, password=os.getenv("REMOTE_PASSWORD"), known_host=True, expect_warning=False)
 
         b.go(f"/@{host}/machines")
         b.enter_page("/machines", host=host)

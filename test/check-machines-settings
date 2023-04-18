@@ -18,6 +18,7 @@
 # along with Cockpit; If not, see <http://www.gnu.org/licenses/>.
 
 import subprocess
+import time
 
 import machineslib
 import testlib
@@ -465,6 +466,7 @@ class TestMachinesSettings(machineslib.VirtualMachinesCase):
         self.waitVmRow("subVmTest1")
 
         b.wait_in_text("#vm-subVmTest1-system-state", "Running")
+        time.sleep(1)
         self.goToVmPage("subVmTest1")
 
         self.waitGuestBooted(args['logfile'])
@@ -731,6 +733,8 @@ class TestMachinesSettings(machineslib.VirtualMachinesCase):
             m.execute("virsh start subVmTest1")
 
             # Test hotplug will fail and warning is shown
+            # The "Save" button be still there if opening the dialog too quickly
+            time.sleep(2)
             openWatchDogDialog()
             b.wait_not_present("#watchdog-dialog-apply-next-boot")
             b.click("#reset")

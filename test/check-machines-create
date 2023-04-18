@@ -126,7 +126,7 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
         # The dialog should auto-adjust it to match the OS'es total memory
         runner.checkDialogFormValidationTest(TestMachinesCreate.VmDialog(self, sourceType='file',
                                                                          location=config.NOVELL_MOCKUP_ISO_PATH,
-                                                                         memory_size=100000, memory_size_unit='MiB',
+                                                                         memory_size=10000000, memory_size_unit='MiB',
                                                                          storage_pool=NO_STORAGE,
                                                                          create_and_run=False),
                                              {"memory": "available on host"})

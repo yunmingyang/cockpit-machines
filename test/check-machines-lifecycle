@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Cockpit; If not, see <http://www.gnu.org/licenses/>.
 
+import time
+
 import machineslib
 import testlib
 
@@ -70,6 +72,8 @@ class TestMachinesLifecycle(machineslib.VirtualMachinesCase):
         # We want no initial watchdog
         args = self.createVm("subVmTest1", os="linux2016")
 
+        # There will be ph_wait_cond is not define if no this sleep here
+        time.sleep(5)
         self.login_and_go("/machines", user=user, superuser=superuser)
 
         if expect_empty_list:
@@ -81,6 +85,8 @@ class TestMachinesLifecycle(machineslib.VirtualMachinesCase):
 
         def checkConnectionDescription(button: str, text: str):
             popover_id = "popover-machines-connection-selector-popover-body"
+            # Add a wait for enabling the button
+            time.sleep(2)
             b.click(button)
             b.wait_visible("#create-vm-dialog")
             b.click('#create-vm-dialog button[aria-label="more info"]')
@@ -138,6 +144,8 @@ class TestMachinesLifecycle(machineslib.VirtualMachinesCase):
         testlib.wait(lambda: float(usage) <= 100.0, delay=3)
 
         # suspend/resume
+        # Sometimes suspend will not take effort if operating right now, so add a sleep here
+        time.sleep(2)
         m.execute("virsh suspend subVmTest1")
         b.wait_in_text("#vm-subVmTest1-system-state", "Paused")
         # resume sometimes fails with "unable to execute QEMU command 'cont':
@@ -176,6 +184,8 @@ class TestMachinesLifecycle(machineslib.VirtualMachinesCase):
 
         # the shut off button beside the VM name
         self.waitGuestBooted(args['logfile'])
+        # Add a wait here, as sometimes the following shutdown will be blocked
+        time.sleep(5)
         b.click("#vm-subVmTest1-system-shutdown-button")
         b.wait_visible("#vm-subVmTest1-system-confirm-action-modal")
         b.click(".pf-v5-c-modal-box__footer #vm-subVmTest1-system-off")
@@ -293,8 +303,15 @@ class TestMachinesLifecycle(machineslib.VirtualMachinesCase):
 
         # Check correctness of the toast notifications list
         # We 'll create errors by starting to start domains when the default network in inactive
+        # Sometime the connection with libvirt will be lost if these command in one line, so separate them and add sleep between them
         self.createVm("subVmTest3")
-        m.execute("virsh destroy subVmTest2; virsh destroy subVmTest3; virsh net-destroy default")
+        time.sleep(2)
+        m.execute("virsh destroy subVmTest2")
+        time.sleep(2)
+        m.execute("virsh destroy subVmTest3")
+        time.sleep(2)
+        m.execute("virsh net-destroy default")
+        time.sleep(2)
 
         def tryRunDomain(name, connection):
             self.waitVmRow(name)

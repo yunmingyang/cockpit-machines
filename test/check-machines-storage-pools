@@ -18,6 +18,7 @@
 # along with Cockpit; If not, see <http://www.gnu.org/licenses/>.
 
 import os
+import time
 
 import machineslib
 import testlib
@@ -716,6 +717,8 @@ class TestMachinesStoragePools(machineslib.VirtualMachinesCase):
         # create disk for lvm-pool
         m.execute(f"wipefs -a {dev}; until pvcreate {dev}; do sleep .5; done; vgcreate vol_grp1 {dev}")
         m.execute("virsh pool-define-as lvm-pool --type logical --source-name vol_grp1; virsh pool-start lvm-pool")
+        # Sometimes the follow creation will fail as the pool capacity is 0, if adding a sleep here, the error disappears
+        time.sleep(2)
 
         StorageVolumeCreateDialog(
             self,
@@ -892,6 +895,7 @@ class TestMachinesStoragePools(machineslib.VirtualMachinesCase):
                     b.wait_text(f"#pool-{self.name}-{self.connection}-state", "active")
 
                     if self.pool_type == "iscsi":
+                        m.execute(f"virsh pool-refresh {self.name}")
                         # these should get picked up through StoragePoolEvent CREATED
                         testlib.wait(lambda: "unit:0:0:0" in m.execute(f"virsh vol-list {self.name}"))
                     elif self.vol_name:
@@ -906,6 +910,8 @@ class TestMachinesStoragePools(machineslib.VirtualMachinesCase):
                 self.test_obj.togglePoolRow(self.name)
 
             def delete(self):
+                if self.pool_type == "iscsi" and self.activate:
+                    testlib.wait(lambda: "0 / 0" not in b.text(f'tr[data-row-id="pool-{self.name}-{self.connection}"] td[data-label="Size"]'))
                 # Expand and click the delete button
                 self.test_obj.dropdownAction(f"#pool-{self.name}-{self.connection}-action-kebab",
                                              f"#delete-pool-{self.name}-{self.connection}")

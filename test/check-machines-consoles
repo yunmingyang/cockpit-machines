@@ -57,7 +57,11 @@ fullscreen=0
         if self.browser.browser == "chromium":
             fname = "download"
         else:
-            testlib.wait(lambda: len(os.listdir(self.browser.driver.download_dir)) == 1)
+            # testlib.wait(lambda: len(os.listdir(self.browser.driver.download_dir)) == 1)
+            # It will block the code in some downstream environment
+            # And the download should happen and finish very quickly
+            # Thus, add a sleep here for avoiding the blocking
+            time.sleep(1)
             fname = os.listdir(self.browser.driver.download_dir)[0]
 
         self.waitDownloadFile(fname, content=content)
@@ -66,7 +70,7 @@ fullscreen=0
     def testExternalConsole(self):
         b = self.browser
 
-        self.createVm("subVmTest1", graphics="spice")
+        self.createVm("subVmTest1", graphics="vnc")
 
         self.login_and_go("/machines")
         self.waitPageInit()
@@ -76,6 +80,11 @@ fullscreen=0
         self.goToVmPage("subVmTest1")
 
         # since VNC is not defined for this VM, the view for "Desktop Viewer" is rendered by default
+        # As creating with VNC, need to switch to the desktop viewer firstly
+        b.click("#pf-v5-c-console__type-selector")
+        b.wait_visible("#pf-v5-c-console__type-selector + .pf-v5-c-select__menu")
+        b.click("#DesktopViewer button")
+        b.wait_not_present("#pf-v5-c-console__type-selector + .pf-v5-c-select__menu")
         b.wait_in_text(".pf-v5-c-console__manual-connection dl > div:first-child dd", "127.0.0.1")
         b.wait_in_text(".pf-v5-c-console__manual-connection dl > div:nth-child(2) dd", "5900")
 
@@ -85,6 +94,10 @@ fullscreen=0
         b.click("button:contains(Expand)")
 
         # Check "More information"
+        b.click("#pf-v5-c-console__type-selector")
+        b.wait_visible("#pf-v5-c-console__type-selector + .pf-v5-c-select__menu")
+        b.click("#DesktopViewer button")
+        b.wait_not_present("#pf-v5-c-console__type-selector + .pf-v5-c-select__menu")
         b.click('.pf-v5-c-console__remote-viewer .pf-v5-c-expandable-section__toggle')
         b.wait_in_text('.pf-v5-c-expandable-section__content',
                        'Clicking "Launch remote viewer" will download')
@@ -258,7 +271,7 @@ fullscreen=0
     def testExternalConsoleMultiHost(self):
         b = self.browser
 
-        my_ip = "172.27.0.15"
+        my_ip = os.getenv("REMOTE_MACHINE")
         name = "subVmTest1"
 
         self.setup_ssh_auth()
@@ -302,7 +315,7 @@ fullscreen=0
 
         host = f"admin@{my_ip}"
 
-        b.add_machine(host, password=None, known_host=True, expect_warning=False)
+        b.add_machine(host, password=os.getenv("REMOTE_PASSWORD"), known_host=True, expect_warning=False)
 
         b.go(f"/@{host}/machines")
         b.enter_page("/machines", host=host)

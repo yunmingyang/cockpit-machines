@@ -283,11 +283,63 @@ class TestMachinesCreate(VirtualMachinesCase):
                                                                     create_and_run=True))
 
     def testCreateDownloadAnOS(self):
+        b = self.browser
         runner = TestMachinesCreate.CreateVmRunner(self)
         config = TestMachinesCreate.TestCreateConfig
 
         self.login_and_go("/machines")
         self.waitPageInit()
+
+        b.click("#create-new-vm")
+        b.wait_visible("#create-vm-dialog")
+        b.select_from_dropdown("#source-type", "os")
+
+        b.wait_visible("ul[role=tablist] button[aria-disabled=true]:contains(Automation)")
+        b.mouse("ul[role=tablist] button[aria-disabled=true]:contains(Automation)", "mouseenter")
+        b.wait_in_text("div.pf-c-tooltip__content", "Automated installs are only available when downloading an image or using cloud-init.")
+        b.mouse("ul[role=tablist] button[aria-disabled=true]:contains(Automation)", "mouseleave")
+        b.wait_not_present("div.pf-c-tooltip__content")
+
+        b.click("#os-select-group > div button")
+        b.click(f"#os-select li:contains('{config.FEDORA_28}') button")
+        b.wait_attr("#os-select-group input", "value", config.FEDORA_28)
+        wait(lambda: config.FEDORA_28_SHORTID in b.attr("#vm-name", "placeholder"))
+        b.wait_visible("ul[role=tablist] button[aria-disabled=false]:contains(Automation)")
+
+        b.select_from_dropdown("#source-type", "url")
+        b.wait_visible("ul[role=tablist] button[aria-disabled=true]:contains(Automation)")
+
+        b.select_from_dropdown("#source-type", "os")
+        b.click("ul[role=tablist] button[aria-disabled=false]:contains(Automation)")
+        b.wait_visible("#profile-select")
+        b.wait_visible("#create-vm-dialog-root-password-pw1")
+        b.wait_visible("#user-login")
+        b.wait_visible("#create-vm-dialog-user-password-pw1")
+
+        b.set_input_text("#create-vm-dialog-root-password-pw1", "foobar")
+        b.wait_visible("#create-and-edit[aria-disabled=true]")
+        b.mouse("#create-and-edit", "mouseenter")
+        b.wait_in_text("div.pf-c-tooltip__content", "Setting the user passwords for unattended installation requires starting the VM when creating it")
+        b.mouse("#create-and-edit", "mouseleave")
+        b.wait_not_present("div.pf-c-tooltip__content")
+
+        b.set_input_text("#create-vm-dialog-root-password-pw1", "")
+        b.wait_visible("#create-and-edit[aria-disabled=false]")
+
+        def checkHintNextPasswordInput(user: str):
+            b.click(f"#create-vm-dialog-{user}-password-pw1-group button.pf-c-form__group-label-help")
+            b.wait_in_text("div.pf-c-popover__body", f"Leave the password blank if you do not wish to have a {user} account created")
+            b.click("div.pf-c-popover__close button")
+            b.wait_not_present("div.pf-c-popover__body")
+
+        checkHintNextPasswordInput("root")
+        checkHintNextPasswordInput("user")
+
+        b.select_from_dropdown("#profile-select", "desktop")
+        b.wait_visible("#create-and-edit[aria-disabled=false]")
+
+        b.click("button:contains(Cancel)")
+        b.wait_not_present("#create-vm-dialog")
 
         # try to CREATE few machines
         runner.createDownloadAnOSTest(TestMachinesCreate.VmDialog(self, sourceType='os',

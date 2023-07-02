@@ -706,6 +706,15 @@ class TestMachinesSettings(VirtualMachinesCase):
         b.mouse("#watchdog-dialog-apply", "mouseenter")
         b.wait_visible("#watchdog-live-edit-tooltip")
 
+        self.createVm("subVmTest3", running=False, watchdog=True)
+
+        self.goToMainPage()
+        self.waitPageInit()
+        self.goToVmPage("subVmTest3")
+
+        b.wait_in_text("#vm-subVmTest3-watchdog-state", "Power off")
+        b.wait_in_text("#vm-subVmTest3-watchdog-button", "edit")
+
     def testVsock(self):
         b = self.browser
         m = self.machine

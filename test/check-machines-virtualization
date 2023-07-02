@@ -97,7 +97,9 @@ class TestMachinesVirtualization(VirtualMachinesCase):
         b.reload()
         b.enter_page('/machines')
         waitEmptyState()
-        b.click(".pf-c-empty-state button.pf-m-link")  # Troubleshoot
+        # As https://bugzilla.redhat.com/show_bug.cgi?id=1974228, check "Start libvirt" button will not be shown
+        b.wait_not_present('button:contains("Start libvirt")')
+        b.click("button:contains(Troubleshoot)")
         b.leave_page()
         b.wait(lambda: "system/services" in b.eval_js("window.location.href"))
 

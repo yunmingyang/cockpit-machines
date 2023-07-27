@@ -141,7 +141,7 @@ class VirtualMachinesCaseHelpers:
         m.execute("virsh net-start default || true")
         m.execute(r"until virsh net-info default | grep 'Active:\s*yes'; do sleep 1; done")
 
-    def createVm(self, name, graphics="none", ptyconsole=False, running=True, memory=2048, connection='system'):
+    def createVm(self, name, graphics="none", ptyconsole=False, running=True, vcpu=1, memory=2048, connection='system'):
         m = self.machine
 
         originalImage = "/var/lib/libvirt/images/fedora31.qcow2"
@@ -171,12 +171,12 @@ class VirtualMachinesCaseHelpers:
         command = ["virt-install --connect qemu:///{5} --name {0} "
                    "--os-variant cirros0.4.0 "
                    "--boot hd,network "
-                   "--vcpus 1 "
+                   "--vcpus {6} "
                    "--memory {1} "
                    "--import --disk {2} "
                    "--graphics {3} "
                    "--console {4}"
-                   "--print-step 1 > /tmp/xml-{5}".format(name, memory, img, "none" if graphics == "none" else graphics + ",listen=127.0.0.1", console, connection)]
+                   "--print-step 1 > /tmp/xml-{5}".format(name, memory, img, "none" if graphics == "none" else graphics + ",listen=127.0.0.1", console, connection, vcpu)]
 
         command.append(f"virsh -c qemu:///{connection} define /tmp/xml-{connection}")
         if running:

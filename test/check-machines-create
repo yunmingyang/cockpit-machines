@@ -262,8 +262,9 @@ class TestMachinesCreate(VirtualMachinesCase):
 
         # Create and Edit + Install
         runner.createCloudBaseImageTest(TestMachinesCreate.VmDialog(self, sourceType='cloud',
-                                                                    storage_size=10, storage_size_unit='MiB',
-                                                                    location=config.VALID_DISK_IMAGE_PATH,
+                                                                    storage_size=10, storage_size_unit='GiB',
+                                                                    memory_size=2, memory_size_unit='GiB',
+                                                                    location="/var/lib/libvirt/images/cloudBase.qcow2",
                                                                     os_name=config.FEDORA_28,
                                                                     os_short_id=config.FEDORA_28_SHORTID,
                                                                     user_password="catsaremybestfr13nds",

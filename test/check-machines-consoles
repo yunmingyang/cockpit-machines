@@ -40,7 +40,7 @@ class TestMachinesConsoles(VirtualMachinesCase):
         self.goToVmPage("subVmTest1")
 
         b.click("#pf-c-console__type-selector")
-        b.wait_visible("ul.pf-c-select__menu")
+        b.wait_visible("ul.pf-v5-c-select__menu")
         b.click("#DesktopViewer button")
         b.wait_in_text(".pf-c-console__manual-connection dl > div:first-child dd", "127.0.0.1")
         b.wait_in_text(".pf-c-console__manual-connection dl > div:nth-child(2) dd", "5900")
@@ -58,6 +58,8 @@ class TestMachinesConsoles(VirtualMachinesCase):
         b.click("button:contains(Expand)")
 
         # Check "More information"
+        b.click("#pf-c-console__type-selector")
+        b.click("#DesktopViewer button")
         b.click('.pf-c-console__remote-viewer .pf-v5-c-expandable-section__toggle')
         b.wait_in_text('.pf-v5-c-expandable-section__content',
                        'Clicking "Launch remote viewer" will download')
@@ -119,11 +121,11 @@ class TestMachinesConsoles(VirtualMachinesCase):
         for _ in range(0, 60):
             b.focus(f"#{name}-terminal .xterm-accessibility-tree")
             b.key_press("\r")
-            if "cirros login" in b.text(f"#{name}-terminal .xterm-accessibility-tree"):
+            if "localhost login" in b.text(f"#{name}-terminal .xterm-accessibility-tree"):
                 break
             time.sleep(1)
         # Make sure the content of console is expected
-        wait(lambda: "cirros login" in b.text(f"#{name}-terminal .xterm-accessibility-tree"))
+        wait(lambda: "localhost login" in b.text(f"#{name}-terminal .xterm-accessibility-tree"), delay=3)
 
         b.click(f"#{name}-serialconsole-disconnect")
         b.wait_text(f"#{name}-terminal", "Disconnected from serial console. Click the connect button.")

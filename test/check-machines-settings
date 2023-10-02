@@ -853,6 +853,40 @@ class TestMachinesSettings(VirtualMachinesCase):
 
         b.wait_in_text("#vm-subVmTest1-vsock-address", "none")
 
+        b.click("#vm-subVmTest1-vsock-button")
+        b.wait_visible("#vm-subVmTest1-vsock-modal[role=dialog]")
+
+        b.set_checked("#vsock-cid-generate", True)
+        b.wait_attr("input[name=vsock-context-identifier]", "value", 3)
+
+        # Click "+" of "Custom identifier"
+        b.click("#vsock-context-identifier div div:nth-child(3) button")
+        b.wait_attr("input[name=vsock-context-identifier]", "value", 4)
+
+        # Click "-" of "Custom identifier"
+        b.click("#vsock-context-identifier div div:nth-child(1) button")
+        b.wait_attr("input[name=vsock-context-identifier]", "value", 3)
+
+        # Check the description
+        b.wait_in_text("#vm-subVmTest1-vsock-modal[role=dialog] header div.pf-v5-c-modal-box__description", "Virtual socket support enables")
+
+        # Check the hint beside the description
+        b.click("#vm-subVmTest1-vsock-modal[role=dialog] header button")
+        b.wait_visible("div.pf-v5-c-popover.pf-m-info.pf-m-width-auto.pf-m-bottom")
+        b.wait_in_text("div.pf-v5-c-popover__title", "An example")
+
+        b.click("div.pf-v5-c-popover__close button")
+        b.wait_not_present("div.pf-v5-c-popover.pf-m-info.pf-m-width-auto.pf-m-bottom")
+        b.wait_visible("#vm-subVmTest1-vsock-modal[role=dialog]")
+
+        b.click("#vm-subVmTest1-vsock-modal[role=dialog] .pf-v5-c-modal-box__close button")
+        b.wait_not_present("#vm-subVmTest1-vsock-modal[role=dialog]")
+
+        b.click("#vm-subVmTest1-vsock-button")
+        b.wait_visible("#vm-subVmTest1-vsock-modal[role=dialog]")
+        b.click("#vsock-dialog-apply + button")
+        b.wait_not_present("#vm-subVmTest1-vsock-modal[role=dialog]")
+
         # The whole UI is based around expectation that libvirt allows maximum 1 vsock per VM
         # Have a canary here which will let us know once this is no longer true
         m.execute("virt-xml subVmTest1 --add-device --vsock cid.auto=yes")

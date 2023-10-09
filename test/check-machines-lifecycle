@@ -69,6 +69,16 @@ class TestMachinesLifecycle(VirtualMachinesCase):
 
         self.login_and_go("/machines", user=user, superuser=superuser)
 
+        if not superuser:
+            print("Check no \"Create virtual network\" button")
+            # Check no "Create virtual network" button
+            b.click("#card-pf-networks button")
+            b.wait_visible("#networks-listing")
+            b.wait_not_present("#create-network")
+
+            b.click('.pf-v5-c-breadcrumb__list a:contains("Virtual machines")')
+            b.wait_visible("#virtual-machines-listing")
+
         if expect_empty_list:
             with b.wait_timeout(20):
                 b.wait_in_text("#virtual-machines-listing .pf-v5-c-empty-state", "No VM is running")

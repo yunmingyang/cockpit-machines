@@ -216,6 +216,20 @@ class TestMachinesConsoles(VirtualMachinesCase):
 
         self.allowed_messages.append("connection unexpectedly closed by peer")
 
+    def testNoConsole(self):
+        b = self.browser
+
+        self.createVm("subVmTest1")
+
+        self.login_and_go("/machines")
+        self.waitPageInit()
+
+        self.waitVmRow("subVmTest1")
+        self.goToVmPage("subVmTest1")
+        b.wait_visible("#vm-subVmTest1-overview-title")
+
+        b.wait_not_present("#vm-subVmTest1-consoles")
+
 
 if __name__ == '__main__':
     test_main()

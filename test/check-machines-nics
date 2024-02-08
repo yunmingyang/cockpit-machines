@@ -134,7 +134,7 @@ class TestMachinesNICs(machineslib.VirtualMachinesCase):
                         skip_layouts=["medium", "rtl"])
 
         # Start vm and wait until kernel is booted
-        testlib.wait(lambda: "1" in self.machine.execute("virsh domifaddr subVmTest1 | grep 192.168.122. | wc -l"), delay=3)
+        testlib.wait(lambda: "2" in self.machine.execute("virsh domifaddr subVmTest1 | grep 192.168.122. | wc -l"), delay=6)
         b.reload()
         b.enter_page('/machines')
         self.waitPageInit()
@@ -142,9 +142,9 @@ class TestMachinesNICs(machineslib.VirtualMachinesCase):
         # Check interfaces have different IP addresses
         # This tests a fix for a bug[1] where we used to show same IP address for every interface
         # https://github.com/cockpit-project/cockpit-machines/issues/1142
-        b.wait_visible("#vm-subVmTest1-network-1-ip-unknown")
+        b.wait_visible("#vm-subVmTest1-network-1-ipv4-address")
         b.wait_in_text("#vm-subVmTest1-network-2-ipv4-address", "192.168.122.")
-        b.wait_visible("#vm-subVmTest1-network-3-ip-unknown")
+        b.wait_visible("#vm-subVmTest1-network-3-ipv4-address")
 
     def testNICPlugingAndUnpluging(self):
         b = self.browser

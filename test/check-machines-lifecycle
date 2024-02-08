@@ -115,7 +115,7 @@ class TestMachinesLifecycle(machineslib.VirtualMachinesCase):
                 "#vm-subVmTest1-hostdevs",
                 "#vm-subVmTest1-emulated-machine",
                 ])
-        b.wait_in_text("#vm-subVmTest1-cpu", "2 vCPUs")
+        b.wait_in_text("#vm-subVmTest1-cpu", "1 vCPU")
 
         b.wait_in_text("#vm-subVmTest1-boot-order", "disk,network")
         emulated_machine = b.text("#vm-subVmTest1-emulated-machine")
@@ -130,8 +130,8 @@ class TestMachinesLifecycle(machineslib.VirtualMachinesCase):
         usage = b.text(".memory-usage-chart .pf-v5-c-progress__status > .pf-v5-c-progress__measure").split(" / ")[0]
         testlib.wait(lambda: float(usage) > 0.0, delay=3)
 
-        b.wait_in_text(".vcpu-usage-chart .pf-v5-c-progress__status > .pf-v5-c-progress__measure", "2 vCPUs")
-        usage = b.text(".vcpu-usage-chart .pf-v5-c-progress__status > .pf-v5-c-progress__measure").split("% of 2 vCPUs")[0]
+        b.wait_in_text(".vcpu-usage-chart .pf-v5-c-progress__status > .pf-v5-c-progress__measure", "1 vCPU")
+        usage = b.text(".vcpu-usage-chart .pf-v5-c-progress__status > .pf-v5-c-progress__measure").split("% of 1 vCPU")[0]
         # CPU usage cannot be nonzero with blank image, so just ensure it's a percentage
         testlib.wait(lambda: float(usage) <= 100.0, delay=3)
 
@@ -175,6 +175,7 @@ class TestMachinesLifecycle(machineslib.VirtualMachinesCase):
 
         # the shut off button beside the VM name
         self.waitCirrOSBooted(args['logfile'])
+        time.sleep(5)
         b.click("#vm-subVmTest1-system-shutdown-button")
         b.wait_visible("#vm-subVmTest1-system-confirm-action-modal")
         b.click(".pf-v5-c-modal-box__footer #vm-subVmTest1-system-off")
@@ -209,7 +210,7 @@ class TestMachinesLifecycle(machineslib.VirtualMachinesCase):
         args2 = self.createVm("subVmTest2")
         b.wait_in_text("#vm-subVmTest2-system-state", "Running")
         self.goToVmPage("subVmTest2")
-        b.wait_in_text("#vm-subVmTest2-cpu", "2 vCPUs")
+        b.wait_in_text("#vm-subVmTest2-cpu", "1 vCPU")
         b.wait_in_text("#vm-subVmTest2-boot-order", "disk,network")
 
         self.goToMainPage()
@@ -378,6 +379,7 @@ class TestMachinesLifecycle(machineslib.VirtualMachinesCase):
         img2 = f"/var/lib/libvirt/images/{name}-2.img"
 
         args = self.createVm(name, graphics='vnc')
+        self.waitCirrOSBooted(args['logfile'])
 
         self.login_and_go("/machines")
         self.waitPageInit()

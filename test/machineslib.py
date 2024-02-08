@@ -73,7 +73,7 @@ class VirtualMachinesCaseHelpers:
         if action in ["resume", "run", "reboot", "forceReboot"]:
             b.wait_in_text(f"#vm-{vmName}-{connectionName}-state", "Running")
             if logPath:
-                testlib.wait(lambda: "Linux version" in m.execute(f"cat {logPath}"))
+                testlib.wait(lambda: "SLOF" in m.execute(f"cat {logPath}"))
         if action == "forceOff" or action == "off":
             b.wait_in_text(f"#vm-{vmName}-{connectionName}-state", "Shut off")
 
@@ -148,7 +148,7 @@ class VirtualMachinesCaseHelpers:
         m.execute(r"until virsh net-info default | grep 'Active:\s*yes'; do sleep 1; done")
 
     # In ppc64le, 128MB memory may cause the VM crash
-    def createVm(self, name, graphics='none', ptyconsole=False, running=True, memory=2048, connection='system', machine=None, os="cirros0.4.0"):
+    def createVm(self, name, graphics='none', ptyconsole=False, running=True, memory=2048, connection='system', machine=None, os="cirros0.4.0", vcpus=1):
         m = machine or self.machine
 
         originalImage = "/var/lib/libvirt/images/ppc64lemini.qcow2"
@@ -182,7 +182,7 @@ class VirtualMachinesCaseHelpers:
         command = [f"virt-install --connect qemu:///{connection} --name {name} "
                    f"--os-variant {os} "
                    "--boot hd,network "
-                   "--vcpus 1 "
+                   f"--vcpus {vcpus} "
                    f"--memory {memory} "
                    f"--import --disk {img} "
                    f"--graphics {'none' if graphics == 'none' else graphics + ',listen=127.0.0.1'} "

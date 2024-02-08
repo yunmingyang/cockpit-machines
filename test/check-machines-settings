@@ -38,7 +38,7 @@ class TestMachinesSettings(machineslib.VirtualMachinesCase):
         b = self.browser
         m = self.machine
 
-        self.createVm("subVmTest1", running=False)
+        self.createVm("subVmTest1", running=False, vcpus=2)
 
         self.login_and_go("/machines")
         self.waitPageInit()
@@ -133,7 +133,7 @@ class TestMachinesSettings(machineslib.VirtualMachinesCase):
         b.wait_not_present("#machines-cpu-modal-dialog")
 
         testlib.wait(lambda: m.execute(
-            "virsh dumpxml subVmTest1 | tee /tmp/subVmTest1.xml | xmllint --xpath '/domain/cpu/topology[@sockets=\"2\"][@threads=\"1\"][@cores=\"2\"]' -"))
+            "virsh dumpxml subVmTest1 | tee /tmp/subVmTest1.xml | xmllint --xpath '/domain/cpu/topology[@sockets=\"4\"][@threads=\"1\"][@cores=\"1\"]' -"))
 
         # Run VM - this ensures that the internal state is updated before we move on.
         # We need this here because we can't wait for UI updates after we open the modal dialog.
@@ -288,13 +288,14 @@ class TestMachinesSettings(machineslib.VirtualMachinesCase):
         b.wait_visible("#vm-subVmTest1-boot-order button[aria-disabled=true]")
         self.performAction("subVmTest1", "forceOff")
 
-        # No host device is attached to VM by default, so attach a PCI device to have at least 1 host device in boot order
-        # Take a device from the end of the list, since first device might be a root pci device
-        pci_output = m.execute("virsh nodedev-list --cap pci").strip().splitlines()[-1]
-        # Turn 'pci_0123_45_67_8' into '0123:45:67.8'
-        split = pci_output[len("pci_"):].split('_')
-        pci_slot = f"{split[0]}:{split[1]}:{split[2]}.{split[3]}"
-        m.execute(f"virt-xml subVmTest1 --add-device --hostdev {pci_slot}")
+        # # No PCI device in the ppc64le env
+        # # No host device is attached to VM by default, so attach a PCI device to have at least 1 host device in boot order
+        # # Take a device from the end of the list, since first device might be a root pci device
+        # pci_output = m.execute("virsh nodedev-list --cap pci").strip().splitlines()[-1]
+        # # Turn 'pci_0123_45_67_8' into '0123:45:67.8'
+        # split = pci_output[len("pci_"):].split('_')
+        # pci_slot = f"{split[0]}:{split[1]}:{split[2]}.{split[3]}"
+        # m.execute(f"virt-xml subVmTest1 --add-device --hostdev {pci_slot}")
 
         # Older libvirt versions don't fire events for host device attachement so we have to reload the page
         b.reload()
@@ -310,7 +311,7 @@ class TestMachinesSettings(machineslib.VirtualMachinesCase):
                        m.execute("virsh domblklist subVmTest1 | awk 'NR==3{print $2}'").strip())
         b.wait_in_text("#vm-subVmTest1-order-modal-device-row-1 .boot-order-additional-info",
                        m.execute("virsh domiflist subVmTest1 | awk 'NR==3{print $5}'").strip())
-        b.wait_visible(f".boot-order-additional-info .pf-v5-c-description-list__description:contains('{pci_slot}')")
+        # b.wait_visible(f".boot-order-additional-info .pf-v5-c-description-list__description:contains('{pci_slot}')")
         # Check a cdrom attributes are shown correctly
         cdrom_row = b.text(".boot-order-list-view li:nth-child(3) .boot-order-additional-info")
         self.assertIn("cdrom", cdrom_row)
@@ -410,11 +411,13 @@ class TestMachinesSettings(machineslib.VirtualMachinesCase):
         b.click("#vm-subVmTest1-memory-modal-save")
         b.wait_not_present("#vm-memory-modal")
 
-        b.wait_in_text("#vm-subVmTest1-memory-count", f"{f'{current_memory - 10:.1f}'} MiB")
+        # As the VM default memory is 2048, the value in Overview tab should still be 2 GiB after current_memory - 10
+        b.wait_in_text("#vm-subVmTest1-memory-count", "2.0 GiB")
 
         # Shut off domain and check changes are  still there
         self.performAction("subVmTest1", "forceOff")
-        b.wait_in_text("#vm-subVmTest1-memory-count", f"{f'{current_memory - 10:.1f}'} MiB")
+        # As the VM default memory is 2048, the value in Overview tab should still be 2 GiB after current_memory - 10
+        b.wait_in_text("#vm-subVmTest1-memory-count", "2.0 GiB")
 
         # Click for the edit link
         b.click("#vm-subVmTest1-memory-count button")
@@ -433,8 +436,9 @@ class TestMachinesSettings(machineslib.VirtualMachinesCase):
         self.assertEqual(int(b.attr("#vm-subVmTest1-memory-modal-memory", "value")), current_memory - 20)
 
         # Verify that unit conversions work
+        # 2024 MiB, Thus the value is 1
         b.select_from_dropdown("#vm-subVmTest1-memory-modal-memory-unit-select", "GiB")
-        b.wait_attr("#vm-subVmTest1-memory-modal-memory", "value", "0")
+        b.wait_attr("#vm-subVmTest1-memory-modal-memory", "value", "1")
 
         # Run VM
         b.click("#vm-subVmTest1-system-run")

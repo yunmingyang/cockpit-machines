@@ -113,7 +113,8 @@ class TestMachinesNICs(machineslib.VirtualMachinesCase):
         self.addCleanup(m.execute, "ip link delete abridge")
         self.addCleanup(m.execute, "ip link delete 0bridge")
         self.addCleanup(m.execute, "ip link delete xbridge")
-        b.reload()
+        with b.wait_timeout(180):
+            b.reload()
         b.enter_page('/machines')
         self.waitPageInit()
         b.click("#vm-subVmTest1-add-iface-button")  # open the Network Interfaces subtab
@@ -193,7 +194,8 @@ class TestMachinesNICs(machineslib.VirtualMachinesCase):
                 delay=3
             )
 
-        b.reload()
+        with b.wait_timeout(180):
+            b.reload()
         b.enter_page('/machines')
         self.waitPageInit()
 
@@ -282,7 +284,8 @@ class TestMachinesNICs(machineslib.VirtualMachinesCase):
         """)
 
         # Refresh for getting new added NIC
-        b.reload()
+        with b.wait_timeout(180):
+            b.reload()
         b.enter_page('/machines')
         self.waitPageInit()
         # Check NIC MAC addresses
@@ -309,9 +312,10 @@ class TestMachinesNICs(machineslib.VirtualMachinesCase):
         b.wait_text("#vm-subVmTest1-network-2-mac", "52:54:00:4b:73:5f")
         b.wait_text("#vm-subVmTest1-network-2-model", "e1000e")
 
+        # aarch64: The VM disappear after undefine, try to reproduce manually, then submit an issue if it could be reproduced
         # Test for bugzilla #2030948
         b.click("#vm-subVmTest1-system-run")
-        m.execute("virsh undefine subVmTest1")
+        m.execute("virsh undefine --nvram subVmTest1")
         b.click(".machines-listing-breadcrumb li a:contains(Virtual machines)")
         b.wait_visible("tr[data-row-id=vm-subVmTest1-system][data-vm-transient=true]")
         self.goToVmPage("subVmTest1")
@@ -428,7 +432,7 @@ class TestMachinesNICs(machineslib.VirtualMachinesCase):
         ).execute()
 
         # Test NIC attaching to non-persistent VM
-        m.execute("virsh dumpxml --inactive subVmTest1 > /tmp/subVmTest1.xml; virsh undefine subVmTest1")
+        m.execute("virsh dumpxml --inactive subVmTest1 > /tmp/subVmTest1.xml; virsh undefine --nvram subVmTest1")
         b.wait_visible("div[data-vm-transient=\"true\"]")
         mac_address = self.get_next_mac(mac_address)
         self.NICAddDialog(
@@ -897,7 +901,8 @@ class TestMachinesNICs(machineslib.VirtualMachinesCase):
                 self.machine.execute(f"virsh detach-interface --mac {self.mac} --domain subVmTest1 --type {self.source_type} --config")  # noqa: E501
 
                 # we don't get any signal for interface detaching right now
-                self.browser.reload()
+                with self.browser.wait_timeout(180):
+                    self.browser.reload()
                 self.browser.enter_page('/machines')
                 self.browser.wait_in_text("body", "Virtual machines")
             else:

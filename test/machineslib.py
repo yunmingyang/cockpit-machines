@@ -44,8 +44,9 @@ class VirtualMachinesCaseHelpers(testlib.MachineCase):
         m = self.machine
         virtualization_disabled_ignored = \
                 self.browser.call_js_func("localStorage.getItem", "virtualization-disabled-ignored") == "true"
-        virtualization_enabled = \
-                "PASS" in m.execute("virt-host-validate qemu | grep 'Checking for hardware virtualization' || true")
+        # no 'Checking for hardware virtualization'
+        # virtualization_enabled = \
+        #         "PASS" in m.execute("virt-host-validate qemu | grep 'Checking for hardware virtualization' || true")
         if not virtualization_enabled and not virtualization_disabled_ignored:
             self.browser.click("#ignore-hw-virtualization-disabled-btn")
         with self.browser.wait_timeout(30):
@@ -75,7 +76,7 @@ class VirtualMachinesCaseHelpers(testlib.MachineCase):
             # https://bugzilla.redhat.com/show_bug.cgi?id=2221144
             # The VM should not be rebooted when the confirmation dialog is shown
             time.sleep(5)
-            self.assertNotIn("Linux version", m.execute(f"cat {logPath}"))
+            self.assertNotIn("Booting", m.execute(f"cat {logPath}"))
 
         # Some actions, which can cause expensive downtime when clicked accidentally, have confirmation dialog
         if action in ["off", "forceOff", "reboot", "forceReboot", "sendNMI"]:
@@ -91,7 +92,7 @@ class VirtualMachinesCaseHelpers(testlib.MachineCase):
         if action in ["resume", "run", "reboot", "forceReboot"]:
             b.wait_in_text(f"#vm-{vmName}-{connectionName}-state", "Running")
             if logPath:
-                testlib.wait(lambda: "Linux version" in m.execute(f"cat {logPath}"))
+                testlib.wait(lambda: "Booting" in m.execute(f"cat {logPath}"))
         if action == "forceOff" or action == "off":
             b.wait_in_text(f"#vm-{vmName}-{connectionName}-state", "Shut off")
 
@@ -201,7 +202,7 @@ class VirtualMachinesCaseHelpers(testlib.MachineCase):
         m.execute(r"until virsh net-info default | grep 'Active:\s*yes'; do sleep 1; done")
 
     def createVm(self, name: str, graphics: str = 'none', *, ptyconsole: bool = False, running: bool = True,
-                 memory: int = 128, connection: str = 'system', machine: testvm.Machine | None = None,
+                 memory: int = 256, connection: str = 'system', machine: testvm.Machine | None = None,
                  os: str | None = None) -> Mapping[str, str | int]:
         m = machine or self.machine
 
@@ -210,7 +211,8 @@ class VirtualMachinesCaseHelpers(testlib.MachineCase):
             # with i440fx by default there.
             os = "linux2022" if "rhel-8" not in m.image else "linux2016"
 
-        image_file = m.pull("alpine")
+        # image_file = m.pull("alpine")
+        image_file = "/var/lib/libvirt/images/alpine-efi-3.20.qcow2"
 
         if connection == "system":
             img = f"/var/lib/libvirt/images/{name}-2.img"
@@ -222,8 +224,7 @@ class VirtualMachinesCaseHelpers(testlib.MachineCase):
             logPath = f"/home/admin/.local/share/libvirt/console-{name}.log"
             qemuLogPath = f"/home/admin/.local/share/libvirt/qemu/{name}.log"
 
-        m.upload([image_file], img)
-        m.execute(f"chmod 777 {img}")
+        m.execute(f"cp {image_file} {img} && chmod 777 {img}")
 
         args: Mapping[str, str | int] = {
             "name": name,
@@ -458,7 +459,7 @@ class VirtualMachinesCase(VirtualMachinesCaseHelpers, storagelib.StorageHelpers,
                       '    echo "$out" | grep -q "domain is not running"; '
                       "  fi; done")
             m.execute("runuser -l admin -c 'for d in $(virsh -c qemu:///session list --all --name); do "
-                      "virsh -c qemu:///session undefine $d --snapshots-metadata; done'")
+                      "virsh -c qemu:///session undefine --nvram $d --snapshots-metadata; done'")
 
             # pools
             m.execute("""

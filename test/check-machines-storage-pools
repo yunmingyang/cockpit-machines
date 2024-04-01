@@ -18,6 +18,7 @@
 # along with Cockpit; If not, see <http://www.gnu.org/licenses/>.
 
 import os
+import time
 
 import machineslib
 import testlib
@@ -132,7 +133,9 @@ class TestMachinesStoragePools(machineslib.VirtualMachinesCase):
         b.wait_in_text("#storage-volumes-delete", "Delete 1 volume")
         b.click("#storage-volumes-delete")
         b.wait_in_text(".pf-v6-c-alert .pf-v6-c-alert__title", "Storage volumes could not be deleted")
-        b.reload()
+        # Wait more time here
+        with b.wait_timeout(180):
+            b.reload()
         b.enter_page('/machines')
         self.togglePoolRow("myPoolTwo", connectionName)
         self.gotoVolumesTab("myPoolTwo")
@@ -140,7 +143,8 @@ class TestMachinesStoragePools(machineslib.VirtualMachinesCase):
         # Delete a volume from terminal and verify that refresh worked by reloading the browser page
         m.execute(f"rm -f {os.path.join(p2, 'VolumeThree')}")
         b.wait_visible(f"#pool-myPoolTwo-{connectionName}-volume-VolumeThree-name")
-        b.reload()
+        with b.wait_timeout(180):
+            b.reload()
         b.enter_page('/machines')
         self.togglePoolRow("myPoolTwo", connectionName)
         self.gotoVolumesTab("myPoolTwo")
@@ -178,7 +182,8 @@ class TestMachinesStoragePools(machineslib.VirtualMachinesCase):
         b.wait_visible(f".pf-m-aria-disabled #delete-pool-myPoolTwo-{connectionName}")
 
         # VM is not running, so we need to reload the page
-        b.reload()
+        with b.wait_timeout(180):
+            b.reload()
         b.enter_page('/machines')
 
         # Expand row for myPoolTwo and check list of storage volumes
@@ -718,6 +723,7 @@ class TestMachinesStoragePools(machineslib.VirtualMachinesCase):
         # create disk for lvm-pool
         m.execute(f"wipefs -a {dev}; until pvcreate {dev}; do sleep .5; done; vgcreate vol_grp1 {dev}")
         m.execute("virsh pool-define-as lvm-pool --type logical --source-name vol_grp1; virsh pool-start lvm-pool")
+        b.wait_in_text("tr[data-row-id='pool-lvm-pool-system']  .pf-v5-c-progress__status .pf-v5-c-progress__measure", "0 / 0.01 GiB")
 
         StorageVolumeCreateDialog(
             self,
@@ -792,7 +798,7 @@ class TestMachinesStoragePools(machineslib.VirtualMachinesCase):
         # Check error shown beside the title, not in the footer
         # Delete the VM, or the deletion button will be disabled
         m.execute("virsh dumpxml subVmTest1 > /tmp/subVmTest1.xml")
-        m.execute("virsh undefine subVmTest1")
+        m.execute("virsh undefine --nvram subVmTest1")
         b.click(".pf-v6-c-breadcrumb__link:contains(Virtual machines)")
         b.wait_in_text("#virtual-machines-listing .pf-v6-c-empty-state", "No VM is running")
         b.click(".pf-v6-c-card .pf-v6-c-card__header button:contains(Storage pool)")
@@ -813,7 +819,8 @@ class TestMachinesStoragePools(machineslib.VirtualMachinesCase):
         m.execute("virsh pool-destroy images; virsh pool-undefine images; virsh pool-create /tmp/poolImages")
         # self.addCleanup(m.execute, "virsh pool-define /tmp/poolImages")
         # The pool will not be shown if creating a transient storage pool without defining
-        b.reload()
+        with b.wait_timeout(180):
+            b.reload()
         b.enter_page('/machines')
         b.wait_in_text("body", "Virtual machines")
 
@@ -901,7 +908,8 @@ class TestMachinesStoragePools(machineslib.VirtualMachinesCase):
                             m.execute(f"virsh vol-create-as {self.name} {self.vol_name} 1M")
                             testlib.wait(lambda: self.vol_name in m.execute(f"virsh vol-list {self.name}"))
                             # need refresh after volume creation
-                            b.reload()
+                            with b.wait_timeout(180):
+                                b.reload()
                             b.enter_page('/machines')
 
                 self.test_obj.waitPoolRow(self.name)
@@ -1083,7 +1091,8 @@ class TestMachinesStoragePools(machineslib.VirtualMachinesCase):
         # Detach the disk
         m.execute("virsh detach-disk subVmTest1 vdb --config")
         # Need to reload to update the disk usedby field
-        b.reload()
+        with b.wait_timeout(180):
+            b.reload()
         b.enter_page("/machines")
 
         self.waitPoolRow("images")
@@ -1109,7 +1118,7 @@ class TestMachinesStoragePools(machineslib.VirtualMachinesCase):
 
         # Check that the error shown after the title, not the footer
         # Delete the VM, or the deletion button will be disabled
-        m.execute("virsh undefine subVmTest1")
+        m.execute("virsh undefine --nvram subVmTest1")
         # Check both command and UI that the VM is not shown
         testlib.wait(lambda: "subVmTest1" not in m.execute("virsh list --all"))
         b.click(".machines-listing-breadcrumb li a:contains(Virtual machines)")

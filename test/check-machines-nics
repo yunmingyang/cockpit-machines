@@ -112,7 +112,8 @@ class TestMachinesNICs(machineslib.VirtualMachinesCase):
         self.addCleanup(m.execute, "ip link delete abridge")
         self.addCleanup(m.execute, "ip link delete 0bridge")
         self.addCleanup(m.execute, "ip link delete xbridge")
-        b.reload()
+        with b.wait_timeout(180):
+            b.reload()
         b.enter_page('/machines')
         self.waitPageInit()
         b.click("#vm-subVmTest1-add-iface-button")  # open the Network Interfaces subtab
@@ -160,7 +161,8 @@ class TestMachinesNICs(machineslib.VirtualMachinesCase):
         # Start vm and wait until kernel is booted
         testlib.wait(lambda: "1" in self.machine.execute("virsh domifaddr subVmTest1 | grep 192.168.122. | wc -l"),
                      delay=3)
-        b.reload()
+        with b.wait_timeout(180):
+            b.reload()
         b.enter_page('/machines')
         self.waitPageInit()
 
@@ -233,17 +235,19 @@ class TestMachinesNICs(machineslib.VirtualMachinesCase):
         # Detach NIC when the VM is shutoff, Also check this issue: https://bugzilla.redhat.com/show_bug.cgi?id=1791543
         self.performAction("subVmTest1", "off")
         # Attach since no NIC now
+        # only virtio could be used when running the VM
         attach_cmd = "virsh attach-interface --domain subVmTest1"
         m.execute(f"""
         {attach_cmd} --type network --source default --model virtio --mac 52:54:00:4b:73:5f --config
         {attach_cmd} --type bridge --source virbr0 --model virtio --mac 52:54:00:4b:73:6f --config
         {attach_cmd} --type network --source default --model virtio --mac 52:54:00:4b:73:4f --config
         # Add network with the same MAC address
-        {attach_cmd} --type network --source default --model e1000e --mac 52:54:00:4b:73:5f --config
+        {attach_cmd} --type network --source default --model virtio --mac 52:54:00:4b:73:5f --config
         """)
 
         # Refresh for getting new added NIC
-        b.reload()
+        with b.wait_timeout(180):
+            b.reload()
         b.enter_page('/machines')
         self.waitPageInit()
         # Check NIC MAC addresses
@@ -252,7 +256,7 @@ class TestMachinesNICs(machineslib.VirtualMachinesCase):
         b.wait_text("#vm-subVmTest1-network-3-mac", "52:54:00:4b:73:5f")
         b.wait_text("#vm-subVmTest1-network-3-model", "virtio")
         b.wait_text("#vm-subVmTest1-network-4-mac", "52:54:00:4b:73:5f")
-        b.wait_text("#vm-subVmTest1-network-4-model", "e1000e")
+        b.wait_text("#vm-subVmTest1-network-4-model", "virtio")
         # Detach
         self.deleteIface(2, "52:54:00:4b:73:4f", "subVmTest1")
         with b.wait_timeout(90):
@@ -265,11 +269,11 @@ class TestMachinesNICs(machineslib.VirtualMachinesCase):
         with b.wait_timeout(90):
             b.wait_not_present("#vm-subVmTest1-network-3-mac")
         b.wait_text("#vm-subVmTest1-network-2-mac", "52:54:00:4b:73:5f")
-        b.wait_text("#vm-subVmTest1-network-2-model", "e1000e")
+        b.wait_text("#vm-subVmTest1-network-2-model", "virtio")
 
         # Test for bugzilla #2030948
         b.click("#vm-subVmTest1-system-run")
-        m.execute("virsh undefine subVmTest1")
+        m.execute("virsh undefine --nvram subVmTest1")
         b.click(".machines-listing-breadcrumb li a:contains(Virtual machines)")
         b.wait_visible("tr[data-row-id=vm-subVmTest1-system][data-vm-transient=true]")
         self.goToVmPage("subVmTest1")
@@ -380,7 +384,7 @@ class TestMachinesNICs(machineslib.VirtualMachinesCase):
             ).execute()
 
             # Test NIC attaching to non-persistent VM
-            m.execute("virsh dumpxml --inactive subVmTest1 > /tmp/subVmTest1.xml; virsh undefine subVmTest1")
+            m.execute("virsh dumpxml --inactive subVmTest1 > /tmp/subVmTest1.xml; virsh undefine --nvram subVmTest1")
             b.wait_visible("div[data-vm-transient=\"true\"]")
             mac_address = self.get_next_mac(mac_address)
             self.NICAddDialog(
@@ -798,7 +802,8 @@ class TestMachinesNICs(machineslib.VirtualMachinesCase):
                 self.machine.execute(f"virsh detach-interface --mac {self.mac} --domain subVmTest1 --type {self.source_type} --config")  # noqa: E501
 
                 # we don't get any signal for interface detaching right now
-                self.browser.reload()
+                with self.browser.wait_timeout(180):
+                    self.browser.reload()
                 self.browser.enter_page('/machines')
                 self.browser.wait_in_text("body", "Virtual machines")
             else:

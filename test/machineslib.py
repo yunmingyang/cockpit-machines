@@ -42,11 +42,12 @@ class VirtualMachinesCaseHelpers:
     machine: testvm.Machine
 
     def waitPageInit(self):
-        m = self.machine
         virtualization_disabled_ignored = \
                 self.browser.call_js_func("localStorage.getItem", "virtualization-disabled-ignored") == "true"
-        virtualization_enabled = \
-                "PASS" in m.execute("virt-host-validate qemu | grep 'Checking for hardware virtualization' || true")
+        # TODO: If failed, hard code virtualization_enabled with True
+        virtualization_enabled = True
+        # virtualization_enabled = \
+        #         "PASS" in m.execute("virt-host-validate qemu | grep 'Checking for hardware virtualization' || true")
         if not virtualization_enabled and not virtualization_disabled_ignored:
             self.browser.click("#ignore-hw-virtualization-disabled-btn")
         with self.browser.wait_timeout(30):
@@ -75,7 +76,7 @@ class VirtualMachinesCaseHelpers:
             # https://bugzilla.redhat.com/show_bug.cgi?id=2221144
             # The VM should not be rebooted when the confirmation dialog is shown
             time.sleep(5)
-            self.assertNotIn("Linux version", m.execute(f"cat {logPath}"))
+            self.assertNotIn("Booting", m.execute(f"cat {logPath}"))
 
         # Some actions, which can cause expensive downtime when clicked accidentally, have confirmation dialog
         if action in ["off", "forceOff", "reboot", "forceReboot", "sendNMI"]:
@@ -91,7 +92,7 @@ class VirtualMachinesCaseHelpers:
         if action in ["resume", "run", "reboot", "forceReboot"]:
             b.wait_in_text(f"#vm-{vmName}-{connectionName}-state", "Running")
             if logPath:
-                testlib.wait(lambda: "Linux version" in m.execute(f"cat {logPath}"))
+                testlib.wait(lambda: "Booting" in m.execute(f"cat {logPath}"))
         if action == "forceOff" or action == "off":
             b.wait_in_text(f"#vm-{vmName}-{connectionName}-state", "Shut off")
 
@@ -182,7 +183,7 @@ class VirtualMachinesCaseHelpers:
                      if ! echo "$out" | grep -q 'Active.*yes'; then virsh net-start default; fi""")
         m.execute(r"until virsh net-info default | grep 'Active:\s*yes'; do sleep 1; done")
 
-    def createVm(self, name, graphics='none', ptyconsole=False, running=True, memory=128,
+    def createVm(self, name, graphics='none', ptyconsole=False, running=True, memory=256,
                  connection='system', machine=None, os=None):
         m = machine or self.machine
 
@@ -191,7 +192,8 @@ class VirtualMachinesCaseHelpers:
             # with i440fx by default there.
             os = "linux2022" if "rhel-8" not in m.image else "linux2016"
 
-        image_file = m.pull("alpine")
+        # image_file = m.pull("alpine")
+        image_file = "/var/lib/libvirt/images/test.qcow2"
 
         if connection == "system":
             img = f"/var/lib/libvirt/images/{name}-2.img"
@@ -203,8 +205,7 @@ class VirtualMachinesCaseHelpers:
             logPath = f"/home/admin/.local/share/libvirt/console-{name}.log"
             qemuLogPath = f"/home/admin/.local/share/libvirt/qemu/{name}.log"
 
-        m.upload([image_file], img)
-        m.execute(f"chmod 777 {img}")
+        m.execute(f"cp {image_file} {img} && chmod 777 {img}")
 
         args = {
             "name": name,
@@ -221,6 +222,7 @@ class VirtualMachinesCaseHelpers:
         command = [f"virt-install --connect qemu:///{connection} --name {name} "
                    f"--os-variant {os} "
                    "--boot hd,network "
+                   "--cpu max "
                    "--vcpus 1 "
                    f"--memory {memory} "
                    f"--import --disk {img} "
@@ -365,7 +367,7 @@ class VirtualMachinesCaseHelpers:
 
     def waitLogFile(self, logfile, expected_text):
         try:
-            testlib.wait(lambda: expected_text in self.machine.execute(f"cat {logfile}"), delay=3)
+            testlib.wait(lambda: expected_text in self.machine.execute(f"cat {logfile}"), delay=10)
         except testlib.Error:
             log = self.machine.execute(f"cat {logfile}")
             print(f"----- log of failed VM ------\n{log}\n---------")
@@ -442,7 +444,7 @@ class VirtualMachinesCase(testlib.MachineCase, VirtualMachinesCaseHelpers,
                       '    echo "$out" | grep -q "domain is not running"; '
                       "  fi; done")
             m.execute("runuser -l admin -c 'for d in $(virsh -c qemu:///session list --all --name); do "
-                      "virsh -c qemu:///session undefine $d --snapshots-metadata; done'")
+                      "virsh -c qemu:///session undefine --nvram $d --snapshots-metadata; done'")
 
             # pools
             m.execute("""

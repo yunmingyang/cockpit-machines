@@ -35,7 +35,9 @@ def hasMonolithicDaemon(image):
 class VirtualMachinesCaseHelpers:
     def waitPageInit(self):
         virtualization_disabled_ignored = self.browser.call_js_func("localStorage.getItem", "virtualization-disabled-ignored") == "true"
-        virtualization_enabled = "PASS" in self.machine.execute("virt-host-validate qemu | grep 'Checking for hardware virtualization'")
+        # no 'Checking for hardware virtualization'
+        # virtualization_enabled = "PASS" in self.machine.execute("virt-host-validate | grep 'Checking for hardware virtualization'")
+        virtualization_enabled = True
         if not virtualization_enabled and not virtualization_disabled_ignored:
             self.browser.click("#ignore-hw-virtualization-disabled-btn")
         with self.browser.wait_timeout(30):
@@ -156,7 +158,7 @@ class VirtualMachinesCaseHelpers:
                      if ! echo "$out" | grep -q 'Active.*yes'; then virsh net-start default; fi""")
         m.execute(r"until virsh net-info default | grep 'Active:\s*yes'; do sleep 1; done")
 
-    def createVm(self, name, graphics='none', ptyconsole=False, running=True, memory=128, connection='system', machine=None, os=None):
+    def createVm(self, name, graphics='none', ptyconsole=False, running=True, memory=256, connection='system', machine=None, os=None):
         m = machine or self.machine
 
         if os is None:
@@ -164,7 +166,8 @@ class VirtualMachinesCaseHelpers:
             # with i440fx by default there.
             os = "linux2022" if "rhel-8" not in m.image else "linux2016"
 
-        image_file = m.pull("alpine")
+        # image_file = m.pull("alpine")
+        image_file = "/var/lib/libvirt/images/alpine-efi-3.20.qcow2"
 
         if connection == "system":
             img = f"/var/lib/libvirt/images/{name}-2.img"
@@ -176,8 +179,7 @@ class VirtualMachinesCaseHelpers:
             logPath = f"/home/admin/.local/share/libvirt/console-{name}.log"
             qemuLogPath = f"/home/admin/.local/share/libvirt/qemu/{name}.log"
 
-        m.upload([image_file], img)
-        m.execute(f"chmod 777 {img}")
+        m.execute(f"cp {image_file} {img} && chmod 777 {img}")
 
         args = {
             "name": name,

@@ -60,14 +60,14 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
         print("    *\n    * validation errors and ui info/warn messages expected:\n    * ")
         runner.cancelDialogTest(TestMachinesCreate.VmDialog(self, sourceType='file',
                                                             location=config.NOVELL_MOCKUP_ISO_PATH,
-                                                            memory_size=128, memory_size_unit='MiB',
+                                                            memory_size=256, memory_size_unit='MiB',
                                                             storage_size=12500, storage_size_unit='GiB',
                                                             create_and_run=False,
                                                             pixel_test_tag="iso"))
 
         runner.cancelDialogTest(TestMachinesCreate.VmDialog(self, sourceType='url',
                                                             location=config.VALID_URL,
-                                                            memory_size=128, memory_size_unit='MiB',
+                                                            memory_size=256, memory_size_unit='MiB',
                                                             os_name=config.FEDORA_28,
                                                             create_and_run=False,
                                                             pixel_test_tag="url"))
@@ -83,7 +83,7 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
         # https://bugzilla.redhat.com/show_bug.cgi?id=1715409
         runner.cancelDialogTest(TestMachinesCreate.VmDialog(self, sourceType='url',
                                                             location=config.TREE_URL,
-                                                            memory_size=128, memory_size_unit='MiB',
+                                                            memory_size=256, memory_size_unit='MiB',
                                                             storage_pool=NO_STORAGE,
                                                             os_name=config.CENTOS_7,
                                                             create_and_run=False,
@@ -438,7 +438,7 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
 
         # try to CREATE few machines
         runner.createDownloadAnOSTest(TestMachinesCreate.VmDialog(self, sourceType='os',
-                                                                  expected_memory_size=128,
+                                                                  expected_memory_size=256,
                                                                   expected_storage_size=128,
                                                                   os_name=config.FEDORA_28,
                                                                   os_short_id=config.FEDORA_28_SHORTID,
@@ -473,7 +473,7 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
         # name already used from a VM that is currently being created
         # https://bugzilla.redhat.com/show_bug.cgi?id=1780451
         runner.createDownloadAnOSTest(TestMachinesCreate.VmDialog(self, name='existing-name', sourceType='os',
-                                                                  expected_memory_size=128,
+                                                                  expected_memory_size=256,
                                                                   expected_storage_size=128,
                                                                   os_name=config.FEDORA_28,
                                                                   os_short_id=config.FEDORA_28_SHORTID,
@@ -533,7 +533,7 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
         # Create with immediate starting
         runner.createTest(TestMachinesCreate.VmDialog(self, name='pxe-guest', sourceType='pxe',
                                                       location="network=pxe-nat",
-                                                      memory_size=128, memory_size_unit='MiB',
+                                                      memory_size=256, memory_size_unit='MiB',
                                                       storage_pool=NO_STORAGE,
                                                       create_and_run=True, delete=False))
 
@@ -664,7 +664,7 @@ vnc_password= "{vnc_passwd}"
         # Check choosing existing volume as destination storage
         runner.createThenInstallTest(TestMachinesCreate.VmDialog(self, sourceType='file',
                                                                  location=config.NOVELL_MOCKUP_ISO_PATH,
-                                                                 memory_size=128, memory_size_unit='MiB',
+                                                                 memory_size=256, memory_size_unit='MiB',
                                                                  storage_pool="poolDisk",
                                                                  storage_volume=partition))
 
@@ -688,27 +688,27 @@ vnc_password= "{vnc_passwd}"
             # Check choosing existing volume as destination storage
             runner.createThenInstallTest(TestMachinesCreate.VmDialog(self, sourceType='file',
                                                                      location=config.NOVELL_MOCKUP_ISO_PATH,
-                                                                     memory_size=128, memory_size_unit='MiB',
+                                                                     memory_size=256, memory_size_unit='MiB',
                                                                      storage_pool="iscsi-pool",
                                                                      storage_volume="unit:0:0:0"))
 
         # Click the install button through the VM details
         runner.createThenInstallTest(TestMachinesCreate.VmDialog(self, sourceType='file',
                                                                  location=config.NOVELL_MOCKUP_ISO_PATH,
-                                                                 memory_size=128, memory_size_unit='MiB',
+                                                                 memory_size=256, memory_size_unit='MiB',
                                                                  storage_pool=NO_STORAGE), True)
 
         # Check PXE boot with separate install phase
         runner.createThenInstallTest(TestMachinesCreate.VmDialog(self, sourceType='pxe',
                                                                  location="network=default",
-                                                                 memory_size=128, memory_size_unit='MiB',
+                                                                 memory_size=256, memory_size_unit='MiB',
                                                                  storage_pool=NO_STORAGE))
         self.allow_browser_errors("Requested operation is not valid: network 'default' is not active")
 
         # Try performing an installation which will fail and ensure that the 'Install' button is still available
         runner.createThenInstallTest(TestMachinesCreate.VmDialog(self, sourceType='file',
                                                                  location=config.NOVELL_MOCKUP_ISO_PATH,
-                                                                 memory_size=128, memory_size_unit='MiB',
+                                                                 memory_size=256, memory_size_unit='MiB',
                                                                  storage_pool=NO_STORAGE), True, True)
 
     def testCreateFileSource(self):
@@ -748,7 +748,7 @@ vnc_password= "{vnc_passwd}"
 
         runner.createTest(TestMachinesCreate.VmDialog(self, sourceType='file',
                                                       location=config.NOVELL_MOCKUP_ISO_PATH,
-                                                      memory_size=128, memory_size_unit='MiB',
+                                                      memory_size=256, memory_size_unit='MiB',
                                                       storage_pool=NO_STORAGE,
                                                       create_and_run=False,
                                                       connection='session'))
@@ -768,7 +768,7 @@ vnc_password= "{vnc_passwd}"
         # Check choosing existing volume as destination storage
         runner.createTest(TestMachinesCreate.VmDialog(self, sourceType='file',
                                                       location=config.NOVELL_MOCKUP_ISO_PATH,
-                                                      memory_size=128, memory_size_unit='MiB',
+                                                      memory_size=256, memory_size_unit='MiB',
                                                       storage_pool="tmp-pool",
                                                       storage_volume="vmTmpDestination.qcow2",
                                                       create_and_run=True,))
@@ -776,7 +776,7 @@ vnc_password= "{vnc_passwd}"
         # Check NO_STORAGE option (only define VM)
         runner.createTest(TestMachinesCreate.VmDialog(self, sourceType='file',
                                                       location=config.NOVELL_MOCKUP_ISO_PATH,
-                                                      memory_size=128, memory_size_unit='MiB',
+                                                      memory_size=256, memory_size_unit='MiB',
                                                       storage_pool=NO_STORAGE,
                                                       create_and_run=True,))
 
@@ -784,14 +784,14 @@ vnc_password= "{vnc_passwd}"
         # Check file with empty space
         runner.createTest(TestMachinesCreate.VmDialog(self, sourceType='file',
                                                       location=config.PATH_WITH_SPACE,
-                                                      memory_size=128, memory_size_unit='MiB',
+                                                      memory_size=256, memory_size_unit='MiB',
                                                       storage_pool=NO_STORAGE,
                                                       create_and_run=True,))
 
         # Check Create new QCOW2 volume
         runner.createTest(TestMachinesCreate.VmDialog(self, sourceType='file',
                                                       location=config.PATH_WITH_SPACE,
-                                                      memory_size=128, memory_size_unit='MiB',
+                                                      memory_size=256, memory_size_unit='MiB',
                                                       storage_size=128, storage_size_unit='MiB',
                                                       storage_pool=NEW_VOLUME_QCOW2,
                                                       create_and_run=True,))
@@ -799,7 +799,7 @@ vnc_password= "{vnc_passwd}"
         # Check Create new RAW volume
         runner.createTest(TestMachinesCreate.VmDialog(self, sourceType='file',
                                                       location=config.PATH_WITH_SPACE,
-                                                      memory_size=128, memory_size_unit='MiB',
+                                                      memory_size=256, memory_size_unit='MiB',
                                                       storage_size=128, storage_size_unit='MiB',
                                                       storage_pool=NEW_VOLUME_RAW,
                                                       create_and_run=True,))
@@ -813,7 +813,7 @@ vnc_password= "{vnc_passwd}"
 
         runner.createTest(TestMachinesCreate.VmDialog(self, sourceType='disk_image',
                                                       location=config.VALID_DISK_IMAGE_PATH,
-                                                      memory_size=128, memory_size_unit='MiB',
+                                                      memory_size=256, memory_size_unit='MiB',
                                                       create_and_run=False))
 
         # Recreate the image the previous test just deleted to reuse it
@@ -828,7 +828,7 @@ vnc_password= "{vnc_passwd}"
 
         runner.createTest(TestMachinesCreate.VmDialog(self, sourceType='disk_image',
                                                       location=config.VALID_DISK_IMAGE_PATH,
-                                                      memory_size=128, memory_size_unit='MiB',
+                                                      memory_size=256, memory_size_unit='MiB',
                                                       create_and_run=True))
 
     def testCreateUrlSource(self):
@@ -862,20 +862,20 @@ vnc_password= "{vnc_passwd}"
 
         runner.createTest(TestMachinesCreate.VmDialog(self, sourceType='url',
                                                       location=config.TREE_URL,
-                                                      memory_size=128, memory_size_unit='MiB',
+                                                      memory_size=256, memory_size_unit='MiB',
                                                       storage_pool=NO_STORAGE,
                                                       os_name=config.FEDORA_28))
 
         runner.createTest(TestMachinesCreate.VmDialog(self, sourceType='url',
                                                       location=config.TREE_URL,
-                                                      memory_size=128, memory_size_unit='MiB',
+                                                      memory_size=256, memory_size_unit='MiB',
                                                       storage_pool=NO_STORAGE,
                                                       os_name=config.FEDORA_28,
                                                       create_and_run=False))
 
         runner.createTest(TestMachinesCreate.VmDialog(self, sourceType='url',
                                                       location=config.TREE_URL,
-                                                      memory_size=128, memory_size_unit='MiB',
+                                                      memory_size=256, memory_size_unit='MiB',
                                                       storage_size=128, storage_size_unit='MiB',
                                                       create_and_run=False))
 
@@ -886,7 +886,7 @@ vnc_password= "{vnc_passwd}"
             try:
                 runner.checkDialogErrorTest(TestMachinesCreate.VmDialog(self, sourceType='url',
                                                                         location=config.ISO_URL,
-                                                                        memory_size=128, memory_size_unit='MiB',
+                                                                        memory_size=256, memory_size_unit='MiB',
                                                                         storage_pool=NO_STORAGE,
                                                                         create_and_run=True), ["qemu", "protocol"])
             finally:
@@ -896,7 +896,7 @@ vnc_password= "{vnc_passwd}"
         # sometimes not; so run this last
         runner.createTest(TestMachinesCreate.VmDialog(self, sourceType='url',
                                                       location=config.ISO_URL,
-                                                      memory_size=128, memory_size_unit='MiB',
+                                                      memory_size=256, memory_size_unit='MiB',
                                                       storage_pool=NO_STORAGE,
                                                       create_and_run=True))
         # lots of OSes don't have a qemu-block https driver
@@ -954,7 +954,7 @@ vnc_password= "{vnc_passwd}"
 
         def __init__(self, test_obj, name=None, name_generated=False,
                      sourceType='file', sourceTypeSecondChoice=None, location='',
-                     memory_size=128, memory_size_unit='MiB',
+                     memory_size=256, memory_size_unit='MiB',
                      expected_memory_size=None,
                      storage_size=None, storage_size_unit='GiB',
                      expected_storage_size=None,
@@ -1061,9 +1061,9 @@ vnc_password= "{vnc_passwd}"
             m = self.machine
 
             b.select_from_dropdown("#memory-size-unit-select", "MiB")
-            b.set_input_text("#memory-size", "128")
+            b.set_input_text("#memory-size", "256")
             b.select_from_dropdown("#memory-size-unit-select", "GiB")
-            b.wait_val("#memory-size", "0.125")
+            b.wait_val("#memory-size", "0.25")
 
             # Check that the best unit is chosen when the storage size is automatically filled after selecting an OS
             # https://bugzilla.redhat.com/show_bug.cgi?id=1987120
@@ -2073,7 +2073,7 @@ vnc_password= "{vnc_passwd}"
         dialog = TestMachinesCreate.VmDialog(self, sourceType='file',
                                              name="VmNotInstalled",
                                              location=TestMachinesCreate.TestCreateConfig.NOVELL_MOCKUP_ISO_PATH,
-                                             memory_size=128, memory_size_unit='MiB',
+                                             memory_size=256, memory_size_unit='MiB',
                                              storage_size=256, storage_size_unit='MiB',
                                              create_and_run=False)
         dialog.open() \
@@ -2223,7 +2223,7 @@ vnc_password= "{vnc_passwd}"
         dialog = TestMachinesCreate.VmDialog(self, sourceType='file',
                                              name="VmNotInstalledBios",
                                              location=TestMachinesCreate.TestCreateConfig.NOVELL_MOCKUP_ISO_PATH,
-                                             memory_size=128, memory_size_unit='MiB',
+                                             memory_size=256, memory_size_unit='MiB',
                                              storage_size=256, storage_size_unit='MiB',
                                              create_and_run=False)
         dialog.open().fill()
@@ -2265,7 +2265,7 @@ vnc_password= "{vnc_passwd}"
         dialog = TestMachinesCreate.VmDialog(self, sourceType='file',
                                              name=vmName,
                                              location=TestMachinesCreate.TestCreateConfig.NOVELL_MOCKUP_ISO_PATH,
-                                             memory_size=128, memory_size_unit='MiB',
+                                             memory_size=256, memory_size_unit='MiB',
                                              storage_size=256, storage_size_unit='MiB',
                                              create_and_run=False)
         dialog.open().fill()

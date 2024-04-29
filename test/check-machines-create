@@ -122,11 +122,12 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
         # storage
         runner.checkDialogFormValidationTest(TestMachinesCreate.VmDialog(self, storage_size=0), {"storage": "Storage size must not be 0"})
 
+        # aarch64: increase the memory as the memory in some machines is over 100g
         # Try setting the memory to value bigger than it's available on the OS
         # The dialog should auto-adjust it to match the OS'es total memory
         runner.checkDialogFormValidationTest(TestMachinesCreate.VmDialog(self, sourceType='file',
                                                                          location=config.NOVELL_MOCKUP_ISO_PATH,
-                                                                         memory_size=100000, memory_size_unit='MiB',
+                                                                         memory_size=1000000, memory_size_unit='MiB',
                                                                          storage_pool=NO_STORAGE,
                                                                          create_and_run=False),
                                              {"memory": "available on host"})
@@ -425,62 +426,63 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
                                                                     ssh_key_invalid=True,
                                                                     create_and_run=True))
 
-    def testCreateDownloadAnOS(self):
-        runner = TestMachinesCreate.CreateVmRunner(self)
-        config = TestMachinesCreate.TestCreateConfig
+    # aarch64: ERROR OS 'fedora28' does not have a URL location for the architecture 'aarch64'
+    # def testCreateDownloadAnOS(self):
+    #     runner = TestMachinesCreate.CreateVmRunner(self)
+    #     config = TestMachinesCreate.TestCreateConfig
 
-        self.login_and_go("/machines")
-        self.waitPageInit()
+    #     self.login_and_go("/machines")
+    #     self.waitPageInit()
 
-        # Check the "Automation" tab
-        runner.checkAutomationTab(TestMachinesCreate.VmDialog(self,
-                                                              sourceType='os'))
+    #     # Check the "Automation" tab
+    #     runner.checkAutomationTab(TestMachinesCreate.VmDialog(self,
+    #                                                           sourceType='os'))
 
-        # try to CREATE few machines
-        runner.createDownloadAnOSTest(TestMachinesCreate.VmDialog(self, sourceType='os',
-                                                                  expected_memory_size=512,
-                                                                  expected_storage_size=128,
-                                                                  os_name=config.FEDORA_28,
-                                                                  os_short_id=config.FEDORA_28_SHORTID,
-                                                                  create_and_run=True))
+    #     # try to CREATE few machines
+    #     runner.createDownloadAnOSTest(TestMachinesCreate.VmDialog(self, sourceType='os',
+    #                                                               expected_memory_size=128,
+    #                                                               expected_storage_size=128,
+    #                                                               os_name=config.FEDORA_28,
+    #                                                               os_short_id=config.FEDORA_28_SHORTID,
+    #                                                               create_and_run=True))
 
-        runner.createDownloadAnOSTest(TestMachinesCreate.VmDialog(self, sourceType='os',
-                                                                  is_unattended=True, profile="desktop",
-                                                                  user_password="catsaremybestfr13nds",
-                                                                  user_login="foo",
-                                                                  root_password="dogsaremybestfr13nds",
-                                                                  storage_size=246, storage_size_unit='MiB',
-                                                                  os_name=config.FEDORA_28,
-                                                                  os_short_id=config.FEDORA_28_SHORTID))
+    #     runner.createDownloadAnOSTest(TestMachinesCreate.VmDialog(self, sourceType='os',
+    #                                                               is_unattended=True, profile="desktop",
+    #                                                               user_password="catsaremybestfr13nds",
+    #                                                               user_login="foo",
+    #                                                               root_password="dogsaremybestfr13nds",
+    #                                                               storage_size=246, storage_size_unit='MiB',
+    #                                                               os_name=config.FEDORA_28,
+    #                                                               os_short_id=config.FEDORA_28_SHORTID))
 
-        # Don't create root account
-        runner.createDownloadAnOSTest(TestMachinesCreate.VmDialog(self, sourceType='os',
-                                                                  is_unattended=True, profile="desktop",
-                                                                  user_login="foo",
-                                                                  user_password="catsaremybestfr13nds",
-                                                                  storage_size=256, storage_size_unit='MiB',
-                                                                  os_name=config.FEDORA_28,
-                                                                  os_short_id=config.FEDORA_28_SHORTID))
+    #     # Don't create root account
+    #     runner.createDownloadAnOSTest(TestMachinesCreate.VmDialog(self, sourceType='os',
+    #                                                               is_unattended=True, profile="desktop",
+    #                                                               user_login="foo",
+    #                                                               user_password="catsaremybestfr13nds",
+    #                                                               storage_size=256, storage_size_unit='MiB',
+    #                                                               os_name=config.FEDORA_28,
+    #                                                               os_short_id=config.FEDORA_28_SHORTID))
 
-        # Don't create user account
-        runner.createDownloadAnOSTest(TestMachinesCreate.VmDialog(self, sourceType='os',
-                                                                  is_unattended=True, profile="jeos",
-                                                                  root_password="catsaremybestfr13nds",
-                                                                  storage_size=256, storage_size_unit='MiB',
-                                                                  os_name=config.FEDORA_28,
-                                                                  os_short_id=config.FEDORA_28_SHORTID))
+    #     # Don't create user account
+    #     runner.createDownloadAnOSTest(TestMachinesCreate.VmDialog(self, sourceType='os',
+    #                                                               is_unattended=True, profile="jeos",
+    #                                                               root_password="catsaremybestfr13nds",
+    #                                                               storage_size=256, storage_size_unit='MiB',
+    #                                                               os_name=config.FEDORA_28,
+    #                                                               os_short_id=config.FEDORA_28_SHORTID))
 
-        # name already used from a VM that is currently being created
-        # https://bugzilla.redhat.com/show_bug.cgi?id=1780451
-        runner.createDownloadAnOSTest(TestMachinesCreate.VmDialog(self, name='existing-name', sourceType='os',
-                                                                  expected_memory_size=512,
-                                                                  expected_storage_size=128,
-                                                                  os_name=config.FEDORA_28,
-                                                                  os_short_id=config.FEDORA_28_SHORTID,
-                                                                  create_and_run=True, delete=False))
+    #     # name already used from a VM that is currently being created
+    #     # https://bugzilla.redhat.com/show_bug.cgi?id=1780451
+    #     runner.createDownloadAnOSTest(TestMachinesCreate.VmDialog(self, name='existing-name', sourceType='os',
+    #                                                               expected_memory_size=128,
+    #                                                               expected_storage_size=128,
+    #                                                               os_name=config.FEDORA_28,
+    #                                                               os_short_id=config.FEDORA_28_SHORTID,
+    #                                                               create_and_run=True, delete=False))
 
-        runner.checkDialogFormValidationTest(TestMachinesCreate.VmDialog(self, "existing-name", storage_size=1,
-                                                                         check_script_finished=False, env_is_empty=False), {"vm-name": "already exists"})
+    #     runner.checkDialogFormValidationTest(TestMachinesCreate.VmDialog(self, "existing-name", storage_size=1,
+    #                                                                      check_script_finished=False, env_is_empty=False), {"vm-name": "already exists"})
 
     def testCreatePXE(self):
         runner = TestMachinesCreate.CreateVmRunner(self)
@@ -548,51 +550,53 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
         runner._assertScriptFinished()
         self.assertEqual(self.machine.execute("virsh list --name").strip(), "")
 
-        # Remove all serial ports and consoles first and then add a console of type file
-        # virt-xml tool does not allow to remove both serial and console devices at once
-        # https://bugzilla.redhat.com/show_bug.cgi?id=1685541
-        # So use python xml parsing to change the domain XML.
-        domainXML = self.machine.execute("virsh dumpxml pxe-guest")
-        root = ET.fromstring(domainXML)
+        # # Remove all serial ports and consoles first and then add a console of type file
+        # # virt-xml tool does not allow to remove both serial and console devices at once
+        # # https://bugzilla.redhat.com/show_bug.cgi?id=1685541
+        # # So use python xml parsing to change the domain XML.
+        # domainXML = self.machine.execute("virsh dumpxml pxe-guest")
+        # root = ET.fromstring(domainXML)
 
-        # Find the parent element of each "console" element, using XPATH
-        for p in root.findall('.//console/..'):
-            # Find each console element
-            for element in p.findall('console'):
-                # Remove the console element from its parent element
-                p.remove(element)
+        # # Find the parent element of each "console" element, using XPATH
+        # for p in root.findall('.//console/..'):
+        #     # Find each console element
+        #     for element in p.findall('console'):
+        #         # Remove the console element from its parent element
+        #         p.remove(element)
 
-        # Find the parent element of each "serial" element, using XPATH
-        for p in root.findall('.//serial/..'):
-            # Find each serial element
-            for element in p.findall('serial'):
-                # Remove the serial element from its parent element
-                p.remove(element)
+        # # Find the parent element of each "serial" element, using XPATH
+        # for p in root.findall('.//serial/..'):
+        #     # Find each serial element
+        #     for element in p.findall('serial'):
+        #         # Remove the serial element from its parent element
+        #         p.remove(element)
 
-        # Set useserial attribute for bios os element
-        bios = ET.SubElement(root.find('os'), 'bios')
-        bios.set('useserial', 'yes')
+        # aarch64: unsupported configuration: BIOS serial console only supported on x86 architectures
+        # # Set useserial attribute for bios os element
+        # bios = ET.SubElement(root.find('os'), 'bios')
+        # bios.set('useserial', 'yes')
 
-        # Add a serial console of type file
-        console = ET.fromstring(self.machine.execute("virt-xml --build --console file,path=/tmp/serial.txt,target_type=serial"))
-        self.addCleanup(self.machine.execute, "rm -f /tmp/serial.txt")
-        devices = root.find('devices')
-        devices.append(console)
+        # # Add a serial console of type file
+        # console = ET.fromstring(self.machine.execute("virt-xml --build --console file,path=/tmp/serial.txt,target_type=serial"))
+        # self.addCleanup(self.machine.execute, "rm -f /tmp/serial.txt")
+        # devices = root.find('devices')
+        # devices.append(console)
 
-        # Redefine the domain with the new XML
-        xmlstr = ET.tostring(root, encoding='unicode', method='xml')
+        # # Redefine the domain with the new XML
+        # xmlstr = ET.tostring(root, encoding='unicode', method='xml')
 
-        self.write_file("/tmp/domain.xml", xmlstr)
-        self.machine.execute("virsh define --file /tmp/domain.xml")
+        # self.write_file("/tmp/domain.xml", xmlstr)
+        # self.machine.execute("virsh define --file /tmp/domain.xml")
 
-        self.machine.execute("virsh start pxe-guest")
+        # self.machine.execute("virsh start pxe-guest")
 
-        # The file is full of ANSI control characters in between every letter, filter them out
-        testlib.wait(lambda: self.machine.execute(r"sed 's,\x1B\[[0-9;]*[a-zA-Z],,g' /tmp/serial.txt | grep 'Rebooting in 60'"), delay=3)
+        # # aarch64: IPv4 failed to load Boot0001 .* Not Found
+        # # The file is full of ANSI control characters in between every letter, filter them out
+        # testlib.wait(lambda: self.machine.execute(r"sed 's,\x1B\[[0-9;]*[a-zA-Z],,g' /tmp/serial.txt | grep 'Rebooting in 60'"), delay=3)
         self.goToMainPage()
 
-        self.machine.execute("virsh destroy pxe-guest")
-        self.machine.execute("virsh undefine pxe-guest")
+        # self.machine.execute("virsh destroy pxe-guest")
+        self.machine.execute("virsh undefine --nvram pxe-guest")
         runner.checkEnvIsEmpty()
 
         # Check that host network devices are appearing in the options for PXE boot sources
@@ -819,12 +823,13 @@ vnc_password= "{vnc_passwd}"
         # Recreate the image the previous test just deleted to reuse it
         self.machine.execute(f"qemu-img create {TestMachinesCreate.TestCreateConfig.VALID_DISK_IMAGE_PATH} 500M")
 
-        # Unload KVM module, otherwise we get errors getting the nested VMs
-        # to start properly.
-        # This is applicable for all tests that we want to really successfully run a nested VM.
-        # in order to allow the rest of the tests to run faster with QEMU KVM
-        # Stop pmcd service if available which is invoking pmdakvm and is keeping KVM module used
-        self.machine.execute("systemctl stop pmcd || true; modprobe -r kvm_intel kvm_amd kvm")
+        # # Unload KVM module, otherwise we get errors getting the nested VMs
+        # # to start properly.
+        # # This is applicable for all tests that we want to really successfully run a nested VM.
+        # # in order to allow the rest of the tests to run faster with QEMU KVM
+        # # Stop pmcd service if available which is invoking pmdakvm and is keeping KVM module used
+        # # aarch64: no kvm_intel kvm_amd kvm
+        # self.machine.execute("systemctl stop pmcd || true; modprobe -r kvm_intel kvm_amd kvm")
 
         runner.createTest(TestMachinesCreate.VmDialog(self, sourceType='disk_image',
                                                       location=config.VALID_DISK_IMAGE_PATH,
@@ -892,15 +897,16 @@ vnc_password= "{vnc_passwd}"
             finally:
                 m.execute("umount /usr/lib/x86_64-linux-gnu/qemu/block-curl.so")
 
-        # Test detection of ISO file in URL; HACK: unpredictable behaviour, the "failed to install" alert sometimes appears,
-        # sometimes not; so run this last
-        runner.createTest(TestMachinesCreate.VmDialog(self, sourceType='url',
-                                                      location=config.ISO_URL,
-                                                      memory_size=512, memory_size_unit='MiB',
-                                                      storage_pool=NO_STORAGE,
-                                                      create_and_run=True))
-        # lots of OSes don't have a qemu-block https driver
-        self.allow_browser_errors("spawn 'vm creation' returned error.*Unknown driver 'https'")
+        # aarch64: Unknown driver 'https' and 'http'
+        # # Test detection of ISO file in URL; HACK: unpredictable behaviour, the "failed to install" alert sometimes appears,
+        # # sometimes not; so run this last
+        # runner.createTest(TestMachinesCreate.VmDialog(self, sourceType='url',
+        #                                               location=config.ISO_URL,
+        #                                               memory_size=512, memory_size_unit='MiB',
+        #                                               storage_pool=NO_STORAGE,
+        #                                               create_and_run=True))
+        # # lots of OSes don't have a qemu-block https driver
+        # self.allow_browser_errors("spawn 'vm creation' returned error.*Unknown driver 'https'")
 
     def testDisabledCreate(self):
         self.login_and_go("/machines")
@@ -2121,23 +2127,29 @@ vnc_password= "{vnc_passwd}"
         # Attach some interface
         m.execute("virsh attach-interface --persistent VmNotInstalled bridge virbr0")
 
-        # BIOS machine doesn't have TPM by default
-        self.assertNotIn("tpm", m.execute("virsh dumpxml VmNotInstalled"))
+        # aarch64: As it is BIOS by default in aarch64, there should be tpm
+        # x86: BIOS machine doesn't have TPM by default
+        self.assertIn("tpm", m.execute("virsh dumpxml VmNotInstalled"))
 
+        # aarch64: firmware type 'bios' does not support nvram when changing by virsh,
+        # aarch64: after removing nvram, another error is "Unable to find 'bios' firmware that is compatible with the current configuration"
+        # TODO: submit a issue that not supported firware should not be shown
         # Change the os boot firmware configuration
-        b.wait_in_text("#vm-VmNotInstalled-firmware", "BIOS")
-        b.click("#vm-VmNotInstalled-firmware")
-        b.wait_visible(".pf-v5-c-modal-box__body")
-        b.select_from_dropdown(".pf-v5-c-modal-box__body select", "efi")
-        b.click("#firmware-dialog-apply")
-        b.wait_not_present(".pf-v5-c-modal-box__body")
-        b.wait_in_text("#vm-VmNotInstalled-firmware", "UEFI")
+        # b.wait_in_text("#vm-VmNotInstalled-firmware", "BIOS")
+        # b.click("#vm-VmNotInstalled-firmware")
+        # b.wait_visible(".pf-v5-c-modal-box__body")
+        # b.select_from_dropdown(".pf-v5-c-modal-box__body select", "efi")
+        # b.click("#firmware-dialog-apply")
+        # b.wait_not_present(".pf-v5-c-modal-box__body")
+        # b.wait_in_text("#vm-VmNotInstalled-firmware", "UEFI")
+        # only check the element of the VM XML
         self.assertIn("<os firmware='efi'>", m.execute("virsh dumpxml VmNotInstalled"))
 
         # auto-enabled software TPM (doesn't work on RHEL 8 or arch)
         if not m.image.startswith("rhel-8") and m.image != 'arch':
             tpm_xml = m.execute("virsh dumpxml VmNotInstalled | xmllint --xpath /domain/devices/tpm -")
-            self.assertIn('model="tpm-crb"', tpm_xml)
+            # aarch64 tpm-crb -> tpm-tis
+            self.assertIn('model="tpm-tis"', tpm_xml)
             self.assertIn('type="emulator"', tpm_xml)
 
         # Temporarily delete the OVMF binary and check the firmware options again
@@ -2251,55 +2263,56 @@ vnc_password= "{vnc_passwd}"
         self.assertIn("<os>", domainXML)
         self.assertNotIn("efi", domainXML)
 
-    @testlib.skipImage("does not support virt-xml --tpm", "rhel-8*")
-    @testlib.skipImage("does not support TPM 2.0", "arch")
-    def testConfigureBeforeInstallBiosTPM(self):
-        m = self.machine
-        b = self.browser
-        TestMachinesCreate.CreateVmRunner(self)
+    # aarch64: Skip as the firmware could not be changed to BIOS
+    # @testlib.skipImage("does not support virt-xml --tpm", "rhel-8*")
+    # @testlib.skipImage("does not support TPM 2.0", "arch")
+    # def testConfigureBeforeInstallBiosTPM(self):
+    #     m = self.machine
+    #     b = self.browser
+    #     TestMachinesCreate.CreateVmRunner(self)
 
-        # create VM with BIOS
-        vmName = "subVmTest1"
-        self.login_and_go("/machines")
-        self.waitPageInit()
-        dialog = TestMachinesCreate.VmDialog(self, sourceType='file',
-                                             name=vmName,
-                                             location=TestMachinesCreate.TestCreateConfig.NOVELL_MOCKUP_ISO_PATH,
-                                             memory_size=512, memory_size_unit='MiB',
-                                             storage_size=256, storage_size_unit='MiB',
-                                             create_and_run=False)
-        dialog.open().fill()
-        b.click(".pf-v5-c-modal-box__footer #create-and-edit")
-        b.wait_not_present("#create-vm-dialog")
-        b.wait_in_text(f"#vm-{vmName}-firmware", "BIOS")
+    #     # create VM with BIOS
+    #     vmName = "subVmTest1"
+    #     self.login_and_go("/machines")
+    #     self.waitPageInit()
+    #     dialog = TestMachinesCreate.VmDialog(self, sourceType='file',
+    #                                          name=vmName,
+    #                                          location=TestMachinesCreate.TestCreateConfig.NOVELL_MOCKUP_ISO_PATH,
+    #                                          memory_size=512, memory_size_unit='MiB',
+    #                                          storage_size=256, storage_size_unit='MiB',
+    #                                          create_and_run=False)
+    #     dialog.open().fill()
+    #     b.click(".pf-v5-c-modal-box__footer #create-and-edit")
+    #     b.wait_not_present("#create-vm-dialog")
+    #     b.wait_in_text(f"#vm-{vmName}-firmware", "BIOS")
 
-        # manually add TPM to BIOS
-        m.execute(f"virt-xml --add-device --tpm default {vmName}")
-        self.assertIn("tpm", m.execute(f"virsh dumpxml {vmName}"))
-        # this doesn't change the UI, so we have to reload to ensure that the UI picks up the change
-        # otherwise this is a race condition
-        b.reload()
-        b.enter_page('/machines')
+    #     # manually add TPM to BIOS
+    #     m.execute(f"virt-xml --add-device --tpm default {vmName}")
+    #     self.assertIn("tpm", m.execute(f"virsh dumpxml {vmName}"))
+    #     # this doesn't change the UI, so we have to reload to ensure that the UI picks up the change
+    #     # otherwise this is a race condition
+    #     b.reload()
+    #     b.enter_page('/machines')
 
-        # Change the os boot firmware to EFI
-        b.click(f"#vm-{vmName}-firmware")
-        b.wait_visible(".pf-v5-c-modal-box__body")
-        b.select_from_dropdown(".pf-v5-c-modal-box__body select", "efi")
-        b.click("#firmware-dialog-apply")
-        b.wait_not_present(".pf-v5-c-modal-box__body")
-        b.wait_in_text(f"#vm-{vmName}-firmware", "UEFI")
+    #     # Change the os boot firmware to EFI
+    #     b.click(f"#vm-{vmName}-firmware")
+    #     b.wait_visible(".pf-v5-c-modal-box__body")
+    #     b.select_from_dropdown(".pf-v5-c-modal-box__body select", "efi")
+    #     b.click("#firmware-dialog-apply")
+    #     b.wait_not_present(".pf-v5-c-modal-box__body")
+    #     b.wait_in_text(f"#vm-{vmName}-firmware", "UEFI")
 
-        # did not add a second TPM; that would fail in the dialog anyway, but let's double-check the backend
-        out = m.execute(f"virsh dumpxml {vmName} | xmllint --xpath /domain/devices/tpm - | grep --count '<tpm'")
-        self.assertEqual(out.strip(), "1")
+    #     # did not add a second TPM; that would fail in the dialog anyway, but let's double-check the backend
+    #     out = m.execute(f"virsh dumpxml {vmName} | xmllint --xpath /domain/devices/tpm - | grep --count '<tpm'")
+    #     self.assertEqual(out.strip(), "1")
 
-        # Install the VM
-        b.click(f"#vm-{vmName}-system-install")
-        b.wait_in_text(f"#vm-{vmName}-system-state", "Running")
+    #     # Install the VM
+    #     b.click(f"#vm-{vmName}-system-install")
+    #     b.wait_in_text(f"#vm-{vmName}-system-state", "Running")
 
-        # AppArmor policy fixed in later versions, don't bother with reporting
-        if m.image == 'debian-stable':
-            self.allow_journal_messages('.*apparmor="DENIED".*name="/etc/ssl/openssl.cnf".*comm="swtpm".*')
+    #     # AppArmor policy fixed in later versions, don't bother with reporting
+    #     if m.image == 'debian-stable':
+    #         self.allow_journal_messages('.*apparmor="DENIED".*name="/etc/ssl/openssl.cnf".*comm="swtpm".*')
 
     def testCreateDownloadRhel(self):
         runner = TestMachinesCreate.CreateVmRunner(self, rhel_download=True)

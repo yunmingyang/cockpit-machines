@@ -175,7 +175,7 @@ class VirtualMachinesCaseHelpers:
             qemuLogPath = f"/home/admin/.local/share/libvirt/qemu/{name}.log"
 
         # Use the prepared image instead of uploading it
-        m.upload("/var/lib/libvirt/images/alpine.qcow2", img)
+        m.execute(f"cp /var/lib/libvirt/images/alpine.qcow2 {img}")
         m.execute(f"chmod 777 {img}")
 
         args = {

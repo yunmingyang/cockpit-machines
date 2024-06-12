@@ -164,8 +164,6 @@ class VirtualMachinesCaseHelpers:
             # with i440fx by default there.
             os = "linux2022" if "rhel-8" not in m.image else "linux2016"
 
-        image_file = m.pull("alpine")
-
         if connection == "system":
             img = f"/var/lib/libvirt/images/{name}-2.img"
             logPath = f"/var/log/libvirt/console-{name}.log"
@@ -176,7 +174,8 @@ class VirtualMachinesCaseHelpers:
             logPath = f"/home/admin/.local/share/libvirt/console-{name}.log"
             qemuLogPath = f"/home/admin/.local/share/libvirt/qemu/{name}.log"
 
-        m.upload([image_file], img)
+        # Use the prepared image instead of uploading it
+        m.upload("/var/lib/libvirt/images/alpine.qcow2", img)
         m.execute(f"chmod 777 {img}")
 
         args = {

@@ -86,7 +86,8 @@ class TestMachinesConsoles(machineslib.VirtualMachinesCase):
         self.machine.execute(f"echo '' > {args['logfile']}")
         b.click("#subVmTest1-system-vnc-sendkey")
         b.click("#ctrl-alt-Delete")
-        self.waitLogFile(args['logfile'], "reboot: Restarting system")
+        # No detail log in the file with Alpine 3.20
+        self.waitLogFile(args['logfile'], "Welcome to Alpine Linux")
 
     def testInlineConsoleWithUrlRoot(self, urlroot=""):
         self.testInlineConsole(urlroot="/webcon")

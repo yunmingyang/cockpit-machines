@@ -146,10 +146,11 @@ class TestMachinesLifecycle(machineslib.VirtualMachinesCase):
         # Wait for the system to completely start
         self.waitGuestBooted(args['logfile'])
 
-        # Send Non-Maskable Interrupt (no change in VM state is expected)
-        self.performAction("subVmTest1", "sendNMI")
+        # Alpine 3.20: dazed and confused, but trying to continue, the VM does not reboot
+        # # Send Non-Maskable Interrupt (no change in VM state is expected)
+        # self.performAction("subVmTest1", "sendNMI")
 
-        self.waitLogFile(args['logfile'], "NMI received")
+        # self.waitLogFile(args['logfile'], "NMI received")
 
         # pause
         self.performAction("subVmTest1", "pause")
@@ -163,8 +164,11 @@ class TestMachinesLifecycle(machineslib.VirtualMachinesCase):
         self.performAction("subVmTest1", "resume")
 
         # reboot
+        # No detail log in the file with Alpine 3.20, so need to clear the log file
+        self.machine.execute(f"echo '' > {args['logfile']}")
         self.performAction("subVmTest1", "reboot", logPath=args['logfile'])
-        self.waitLogFile(args['logfile'], "reboot: Power down")
+        # self.waitLogFile(args['logfile'], "reboot: Power down")
+        self.waitGuestBooted(args['logfile'])
         b.wait_in_text("#vm-subVmTest1-system-state", "Running")
 
         # force reboot

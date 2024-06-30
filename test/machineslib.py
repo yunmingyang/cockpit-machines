@@ -77,7 +77,7 @@ class VirtualMachinesCaseHelpers:
             # https://bugzilla.redhat.com/show_bug.cgi?id=2221144
             # The VM should not be rebooted when the confirmation dialog is shown
             time.sleep(5)
-            self.assertNotIn("Linux version", m.execute(f"cat {logPath}"))
+            self.assertNotIn("Booting", m.execute(f"cat {logPath}"))
 
         # Some actions, which can cause expensive downtime when clicked accidentally, have confirmation dialog
         if action in ["off", "forceOff", "reboot", "forceReboot", "sendNMI"]:
@@ -93,7 +93,7 @@ class VirtualMachinesCaseHelpers:
         if action in ["resume", "run", "reboot", "forceReboot"]:
             b.wait_in_text(f"#vm-{vmName}-{connectionName}-state", "Running")
             if logPath:
-                testlib.wait(lambda: "Linux version" in m.execute(f"cat {logPath}"))
+                testlib.wait(lambda: "Booting" in m.execute(f"cat {logPath}"))
         if action == "forceOff" or action == "off":
             b.wait_in_text(f"#vm-{vmName}-{connectionName}-state", "Shut off")
 
@@ -184,12 +184,8 @@ class VirtualMachinesCaseHelpers:
                      if ! echo "$out" | grep -q 'Active.*yes'; then virsh net-start default; fi""")
         m.execute(r"until virsh net-info default | grep 'Active:\s*yes'; do sleep 1; done")
 
-<<<<<<< HEAD
-    def createVm(self, name, graphics='none', ptyconsole=False, running=True, memory=128,
+    def createVm(self, name, graphics='none', ptyconsole=False, running=True, memory=256,
                  connection='system', machine=None, os=None):
-=======
-    def createVm(self, name, graphics='none', ptyconsole=False, running=True, memory=256, connection='system', machine=None, os=None):
->>>>>>> 29b44783 (modify)
         m = machine or self.machine
 
         if os is None:

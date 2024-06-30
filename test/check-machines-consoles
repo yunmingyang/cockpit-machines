@@ -42,7 +42,7 @@ class TestMachinesConsoles(machineslib.VirtualMachinesCase):
         # As changing to check the VNC console, selecting is needed
         b.click("#pf-v5-c-console__type-selector")
         b.wait_visible("#pf-v5-c-console__type-selector + .pf-v5-c-select__menu")
-        b.click("#VncConsole button")
+        b.click("#DesktopViewer button")
         b.wait_not_present("#pf-v5-c-console__type-selector + .pf-v5-c-select__menu")
         b.wait_in_text(".pf-v5-c-console__manual-connection dl > div:first-child dd", "127.0.0.1")
         b.wait_in_text(".pf-v5-c-console__manual-connection dl > div:nth-child(2) dd", "5900")
@@ -64,7 +64,7 @@ class TestMachinesConsoles(machineslib.VirtualMachinesCase):
         # As changing to check the VNC console, selecting is needed
         b.click("#pf-v5-c-console__type-selector")
         b.wait_visible("#pf-v5-c-console__type-selector + .pf-v5-c-select__menu")
-        b.click("#VncConsole button")
+        b.click("#DesktopViewer button")
         b.wait_not_present("#pf-v5-c-console__type-selector + .pf-v5-c-select__menu")
         b.click('.pf-v5-c-console__remote-viewer .pf-v5-c-expandable-section__toggle')
         b.wait_in_text('.pf-v5-c-expandable-section__content',

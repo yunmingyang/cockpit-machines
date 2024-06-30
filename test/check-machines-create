@@ -686,7 +686,8 @@ vnc_password= "{vnc_passwd}"
 
             self.addCleanup(self.machine.execute, "virsh pool-destroy iscsi-pool; virsh pool-undefine iscsi-pool")
 
-            self.browser.reload()
+            with self.browser.wait_timeout(180):
+                self.browser.reload()
             self.browser.enter_page('/machines')
             self.waitPageInit()
 
@@ -747,7 +748,8 @@ vnc_password= "{vnc_passwd}"
         self.machine.execute("virsh pool-define-as default --type dir --target /var/lib/libvirt/images")
         self.machine.execute("virsh pool-start default")
 
-        self.browser.reload()
+        with self.browser.wait_timeout(180):
+            self.browser.reload()
         self.browser.enter_page('/machines')
         self.waitPageInit()
 
@@ -766,7 +768,8 @@ vnc_password= "{vnc_passwd}"
         ]
         self.machine.execute("; ".join(cmds))
 
-        self.browser.reload()
+        with self.browser.wait_timeout(180):
+            self.browser.reload()
         self.browser.enter_page('/machines')
         self.waitPageInit()
 
@@ -919,7 +922,8 @@ vnc_password= "{vnc_passwd}"
         self.machine.execute(f'mount -o bind /dev/null {virt_install_bin}')
         self.addCleanup(self.machine.execute, f"umount {virt_install_bin}")
 
-        self.browser.reload()
+        with self.browser.wait_timeout(180):
+            self.browser.reload()
         self.browser.enter_page('/machines')
         self.browser.wait_visible("#create-new-vm:disabled")
         # There are many reasons why the button would be disabled, so check if it's correct one

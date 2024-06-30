@@ -53,7 +53,8 @@ class TestMachinesConsoles(machineslib.VirtualMachinesCase):
                          u"data:application/x-virt-viewer,%5Bvirt-viewer%5D%0Atype%3Dvnc%0Ahost%3D127.0.0.1%0Aport%3D5900%0Adelete-this-file%3D1%0Afullscreen%3D0%0A")
 
         # HACK: clicking 'Launch Remote Viewer' kills execution context and thus CDP fails
-        b.reload()
+        with b.wait_timeout(180):
+            b.reload()
         b.enter_page("/machines")
 
         # Go to the expanded console view

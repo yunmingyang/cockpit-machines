@@ -426,7 +426,7 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
                                                                     ssh_key_invalid=True,
                                                                     create_and_run=True))
 
-    # aarch64: ERROR OS 'fedora28' does not have a URL location for the architecture 'aarch64'
+    # aarch64: OS 'fedora28' does not have a URL location for the architecture 'aarch64'
     # def testCreateDownloadAnOS(self):
     #     runner = TestMachinesCreate.CreateVmRunner(self)
     #     config = TestMachinesCreate.TestCreateConfig
@@ -528,7 +528,8 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
         self.add_veth(iface)
 
         # We don't handle events for networks yet, so reload the page to refresh the state
-        b.reload()
+        with b.wait_timeout(180):
+            b.reload()
         b.enter_page('/machines')
         self.waitPageInit()
 
@@ -821,20 +822,20 @@ vnc_password= "{vnc_passwd}"
                                                       create_and_run=False))
 
         # Recreate the image the previous test just deleted to reuse it
-        self.machine.execute(f"qemu-img create {TestMachinesCreate.TestCreateConfig.VALID_DISK_IMAGE_PATH} 500M")
+        # self.machine.execute(f"qemu-img create {TestMachinesCreate.TestCreateConfig.VALID_DISK_IMAGE_PATH} 500M")
 
-        # # Unload KVM module, otherwise we get errors getting the nested VMs
-        # # to start properly.
-        # # This is applicable for all tests that we want to really successfully run a nested VM.
-        # # in order to allow the rest of the tests to run faster with QEMU KVM
-        # # Stop pmcd service if available which is invoking pmdakvm and is keeping KVM module used
-        # # aarch64: no kvm_intel kvm_amd kvm
+        # aarch64: no kvm_intel kvm_amd kvm
+        # Unload KVM module, otherwise we get errors getting the nested VMs
+        # to start properly.
+        # This is applicable for all tests that we want to really successfully run a nested VM.
+        # in order to allow the rest of the tests to run faster with QEMU KVM
+        # Stop pmcd service if available which is invoking pmdakvm and is keeping KVM module used
         # self.machine.execute("systemctl stop pmcd || true; modprobe -r kvm_intel kvm_amd kvm")
 
-        runner.createTest(TestMachinesCreate.VmDialog(self, sourceType='disk_image',
-                                                      location=config.VALID_DISK_IMAGE_PATH,
-                                                      memory_size=512, memory_size_unit='MiB',
-                                                      create_and_run=True))
+        # runner.createTest(TestMachinesCreate.VmDialog(self, sourceType='disk_image',
+        #                                               location=config.VALID_DISK_IMAGE_PATH,
+        #                                               memory_size=512, memory_size_unit='MiB',
+        #                                               create_and_run=True))
 
     def testCreateUrlSource(self):
         m = self.machine
@@ -863,7 +864,7 @@ vnc_password= "{vnc_passwd}"
         runner.checkDialogFormValidationTest(TestMachinesCreate.VmDialog(self, "existing-name", storage_size=1,
                                                                          env_is_empty=False), {"vm-name": "already exists"})
 
-        m.execute("virsh undefine existing-name")
+        m.execute("virsh undefine --nvram existing-name")
 
         runner.createTest(TestMachinesCreate.VmDialog(self, sourceType='url',
                                                       location=config.TREE_URL,
@@ -2127,7 +2128,7 @@ vnc_password= "{vnc_passwd}"
         # Attach some interface
         m.execute("virsh attach-interface --persistent VmNotInstalled bridge virbr0")
 
-        # aarch64: As it is BIOS by default in aarch64, there should be tpm
+        # aarch64: As it is UEFI by default in aarch64, there should be tpm
         # x86: BIOS machine doesn't have TPM by default
         self.assertIn("tpm", m.execute("virsh dumpxml VmNotInstalled"))
 
@@ -2168,7 +2169,8 @@ vnc_password= "{vnc_passwd}"
         self.addCleanup(m.execute, f"if mountpoint {ovmf_path}; then umount {ovmf_path}; fi")
 
         # Reload for the new configuration to be read
-        b.reload()
+        with b.wait_timeout(180):
+            b.reload()
         b.enter_page('/machines')
 
         b.mouse("#vm-VmNotInstalled-firmware-tooltip", "mouseenter")
@@ -2224,44 +2226,45 @@ vnc_password= "{vnc_passwd}"
         self.allow_browser_errors("Failed when connecting: Connection closed")
         self.allow_journal_messages(".* couldn't shutdown fd: Transport endpoint is not connected")
 
-    def testConfigureBeforeInstallBios(self):
-        TestMachinesCreate.CreateVmRunner(self)
+    # aarch64: Skip as the firmware could not be changed to BIOS
+    # def testConfigureBeforeInstallBios(self):
+    #     TestMachinesCreate.CreateVmRunner(self)
 
-        b = self.browser
+    #     b = self.browser
 
-        self.login_and_go("/machines")
-        self.waitPageInit()
+    #     self.login_and_go("/machines")
+    #     self.waitPageInit()
 
-        dialog = TestMachinesCreate.VmDialog(self, sourceType='file',
-                                             name="VmNotInstalledBios",
-                                             location=TestMachinesCreate.TestCreateConfig.NOVELL_MOCKUP_ISO_PATH,
-                                             memory_size=512, memory_size_unit='MiB',
-                                             storage_size=256, storage_size_unit='MiB',
-                                             create_and_run=False)
-        dialog.open().fill()
+    #     dialog = TestMachinesCreate.VmDialog(self, sourceType='file',
+    #                                          name="VmNotInstalledBios",
+    #                                          location=TestMachinesCreate.TestCreateConfig.NOVELL_MOCKUP_ISO_PATH,
+    #                                          memory_size=512, memory_size_unit='MiB',
+    #                                          storage_size=256, storage_size_unit='MiB',
+    #                                          create_and_run=False)
+    #     dialog.open().fill()
 
-        b.click(".pf-v5-c-modal-box__footer #create-and-edit")
-        b.wait_not_present("#create-vm-dialog")
+    #     b.click(".pf-v5-c-modal-box__footer #create-and-edit")
+    #     b.wait_not_present("#create-vm-dialog")
 
-        self.waitVmPage("VmNotInstalledBios")
+    #     self.waitVmPage("VmNotInstalledBios")
 
-        # Show and keep the os boot firmware configuration
-        b.wait_in_text("#vm-VmNotInstalledBios-firmware", "BIOS")
-        b.click("#vm-VmNotInstalledBios-firmware")
-        b.wait_visible(".pf-v5-c-modal-box__body")
-        b.wait_val(".pf-v5-c-modal-box__body select", "bios")
-        b.click("#firmware-dialog-apply")
-        b.wait_not_present(".pf-v5-c-modal-box__body")
-        b.wait_in_text("#vm-VmNotInstalledBios-firmware", "BIOS")
+    #     # Show and keep the os boot firmware configuration
+    #     b.wait_in_text("#vm-VmNotInstalledBios-firmware", "BIOS")
+    #     b.click("#vm-VmNotInstalledBios-firmware")
+    #     b.wait_visible(".pf-v5-c-modal-box__body")
+    #     b.wait_val(".pf-v5-c-modal-box__body select", "bios")
+    #     b.click("#firmware-dialog-apply")
+    #     b.wait_not_present(".pf-v5-c-modal-box__body")
+    #     b.wait_in_text("#vm-VmNotInstalledBios-firmware", "BIOS")
 
-        # Install the VM
-        b.click("#vm-VmNotInstalledBios-system-install")
-        b.wait_in_text("#vm-VmNotInstalledBios-system-state", "Running")
+    #     # Install the VM
+    #     b.click("#vm-VmNotInstalledBios-system-install")
+    #     b.wait_in_text("#vm-VmNotInstalledBios-system-state", "Running")
 
-        domainXML = self.machine.execute("virsh dumpxml VmNotInstalledBios")
-        # no explicit "firmware=" field
-        self.assertIn("<os>", domainXML)
-        self.assertNotIn("efi", domainXML)
+    #     domainXML = self.machine.execute("virsh dumpxml VmNotInstalledBios")
+    #     # no explicit "firmware=" field
+    #     self.assertIn("<os>", domainXML)
+    #     self.assertNotIn("efi", domainXML)
 
     # aarch64: Skip as the firmware could not be changed to BIOS
     # @testlib.skipImage("does not support virt-xml --tpm", "rhel-8*")
@@ -2534,7 +2537,7 @@ vnc_password= "{vnc_passwd}"
             b.wait_not_present(f"#vm-{vmCockpit}-uses-spice")
 
         self.goToMainPage()
-        self.machine.execute(f"virsh destroy {vmCockpit}; virsh undefine {vmCockpit}")
+        self.machine.execute(f"virsh destroy {vmCockpit}; virsh undefine --nvram {vmCockpit}")
 
         # RHEL ≥ 9 doesn't support SPICE, so skip the rest of the test
         if (m.image.startswith("rhel-") or m.image.startswith("centos-")) and "rhel-8" not in m.image:

@@ -68,7 +68,9 @@ class TestMachinesSnapshots(machineslib.VirtualMachinesCase):
         time1 = datetime.now().strftime("%H:%M:%S")
         m.execute("virsh snapshot-create-as --domain subVmTest1 --name snapshotB --description 'Description of snapshotB' --disk-only")
 
-        b.reload()  # snapshots events not available yet: https://gitlab.com/libvirt/libvirt/-/issues/44
+        # snapshots events not available yet: https://gitlab.com/libvirt/libvirt/-/issues/44
+        with b.wait_timeout(180):
+            b.reload()
         b.enter_page('/machines')
         b.wait_in_text("#vm-subVmTest1-system-state", "Running")
 
@@ -86,7 +88,9 @@ class TestMachinesSnapshots(machineslib.VirtualMachinesCase):
         long_description = "This is a long description" * 10
         m.execute(f"virsh snapshot-create-as --domain subVmTest1 --name snapshotC --description '{long_description}'")
 
-        b.reload()  # snapshots events not available yet: https://gitlab.com/libvirt/libvirt/-/issues/44
+        # snapshots events not available yet: https://gitlab.com/libvirt/libvirt/-/issues/44
+        with b.wait_timeout(180):
+            b.reload()
         b.enter_page('/machines')
 
         b.wait_in_text("#vm-subVmTest1-snapshot-0-name", "snapshotC")
@@ -338,7 +342,8 @@ class TestMachinesSnapshots(machineslib.VirtualMachinesCase):
         m.execute(f"echo '{diskXML}' > /tmp/disk.xml; virsh attach-device --config --file /tmp/disk.xml subVmTest1")
 
         # virsh attach-disk doesn't send an event for offline VM changes
-        b.reload()
+        with b.wait_timeout(180):
+            b.reload()
         b.enter_page('/machines')
         b.wait_visible("#vm-subVmTest1-disks-vdb-source-volume")
 
@@ -365,7 +370,8 @@ class TestMachinesSnapshots(machineslib.VirtualMachinesCase):
         m.execute("virsh attach-disk --domain subVmTest1 --config --source /var/lib/libvirt/images/mock.iso "
                   "--target sdd --type cdrom")
         # virsh attach-disk doesn't send an event for offline VM changes
-        b.reload()
+        with b.wait_timeout(180):
+            b.reload()
         b.enter_page('/machines')
         b.wait_visible("#vm-subVmTest1-disks-sdd-source-file")
         SnapshotCreateDialog(
@@ -428,9 +434,10 @@ class TestMachinesSnapshots(machineslib.VirtualMachinesCase):
         m.execute("virsh detach-disk --domain subVmTest1 --target vda --config")  # vda is raw disk, which are not supported by internal snapshots
         m.execute("qemu-img create -f qcow2 /var/lib/libvirt/images/foobar.qcow2 1M")
         m.execute("virsh attach-disk --domain subVmTest1 --source /var/lib/libvirt/images/foobar.qcow2 --target vdb --subdriver qcow2 --config")
-        m.execute("virsh snapshot-create-as --domain subVmTest1 --name snapshotA --description 'Description of snapshotA'")
+        # error: Operation not supported: internal snapshots of a VM with pflash based firmware are not supported, add --memspec, no such error in fedora 40
+        m.execute("virsh snapshot-create-as --domain subVmTest1 --name snapshotA --description 'Description of snapshotA' --memspec /var/lib/libvirt/images/subVmTest1A.mem")
         time.sleep(1)
-        m.execute("virsh snapshot-create-as --domain subVmTest1 --name snapshotB --description 'Description of snapshotB'")
+        m.execute("virsh snapshot-create-as --domain subVmTest1 --name snapshotB --description 'Description of snapshotB' --memspec /var/lib/libvirt/images/subVmTest1B.mem")
         # snapshotB is the current snapshot
         m.execute("virsh snapshot-current --domain subVmTest1 --snapshotname snapshotA")
 

@@ -592,10 +592,6 @@ class TestMachinesStoragePools(machineslib.VirtualMachinesCase):
                 b.wait_not_present("#create-storage-pool-dialog")
 
             def create(self):
-                # If clicking too quickly, there may be an error like the capacity is not enough
-                # Not sure about this, but add a sleep here could resolve the issue
-                if "lvm" in self.pool_name:
-                    time.sleep(5)
                 b.click(".pf-v5-c-modal-box__footer button:contains(Create)")
 
                 if not self.xfail:
@@ -708,6 +704,7 @@ class TestMachinesStoragePools(machineslib.VirtualMachinesCase):
         # create disk for lvm-pool
         m.execute(f"wipefs -a {dev}; until pvcreate {dev}; do sleep .5; done; vgcreate vol_grp1 {dev}")
         m.execute("virsh pool-define-as lvm-pool --type logical --source-name vol_grp1; virsh pool-start lvm-pool")
+        b.wait_in_text("tr[data-row-id='pool-lvm-pool-system']  .pf-v5-c-progress__status .pf-v5-c-progress__measure", "0 / 0.01 GiB")
 
         StorageVolumeCreateDialog(
             self,

@@ -444,7 +444,7 @@ class VirtualMachinesCase(testlib.MachineCase, VirtualMachinesCaseHelpers,
                       '    echo "$out" | grep -q "domain is not running"; '
                       "  fi; done")
             m.execute("runuser -l admin -c 'for d in $(virsh -c qemu:///session list --all --name); do "
-                      "virsh -c qemu:///session undefine $d --snapshots-metadata; done'")
+                      "virsh -c qemu:///session undefine --nvram $d --snapshots-metadata; done'")
 
             # pools
             m.execute("""

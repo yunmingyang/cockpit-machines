@@ -937,7 +937,7 @@ class TestMachinesDisks(machineslib.VirtualMachinesCase):
         ).execute()
 
         # Test fix for https://bugzilla.redhat.com/show_bug.cgi?id=2107247
-        # m.upload([os.path.join(testlib.BOTS_DIR, "machine/cloud-init.iso")], "/var/lib/libvirt/images/defaultVol.iso")
+        m.execute("cp /var/lib/libvirt/images/alpine.iso /var/lib/libvirt/images/defaultVol.iso")
         m.execute("virsh pool-refresh images")
         testlib.wait(lambda: "defaultVol.iso" in m.execute("virsh vol-list images"), delay=3)
 

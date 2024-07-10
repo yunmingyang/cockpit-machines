@@ -310,6 +310,7 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
     def testCreateCloudBaseImage(self):
         runner = TestMachinesCreate.CreateVmRunner(self)
         config = TestMachinesCreate.TestCreateConfig
+        preparedImage = "/var/lib/libvirt/images/cloudBase.qcow2"
 
         self.login_and_go("/machines")
         self.waitPageInit()
@@ -323,7 +324,7 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
         runner.createCloudBaseImageTest(TestMachinesCreate.VmDialog(self, sourceType='cloud',
                                                                     storage_size=10, storage_size_unit='GiB',
                                                                     memory_size=2, memory_size_unit='GiB',
-                                                                    location="/var/lib/libvirt/images/cloudBase.qcow2",
+                                                                    location=preparedImage,
                                                                     os_name=config.FEDORA_28,
                                                                     os_short_id=config.FEDORA_28_SHORTID,
                                                                     user_password="catsaremybestfr13nds",
@@ -335,7 +336,7 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
         runner.createCloudBaseImageTest(TestMachinesCreate.VmDialog(self, sourceType='cloud',
                                                                     storage_size=10, storage_size_unit='GiB',
                                                                     memory_size=2, memory_size_unit='GiB',
-                                                                    location="/var/lib/libvirt/images/cloudBase.qcow2",
+                                                                    location=preparedImage,
                                                                     os_name=config.FEDORA_28,
                                                                     os_short_id=config.FEDORA_28_SHORTID,
                                                                     user_password="catsaremybestfr13nds",
@@ -348,7 +349,7 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
         runner.createCloudBaseImageTest(TestMachinesCreate.VmDialog(self, sourceType='cloud',
                                                                     storage_size=10, storage_size_unit='GiB',
                                                                     memory_size=2, memory_size_unit='GiB',
-                                                                    location="/var/lib/libvirt/images/cloudBase.qcow2",
+                                                                    location=preparedImage,
                                                                     os_name=config.FEDORA_28,
                                                                     os_short_id=config.FEDORA_28_SHORTID,
                                                                     create_and_run=True))
@@ -802,7 +803,7 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
                                                       storage_pool=NO_STORAGE,
                                                       create_and_run=True,))
 
-        self.machine.execute(f"cp /var/lib/libvirt/images/s390x.iso '{config.PATH_WITH_SPACE}'")
+        self.machine.execute(f"cp /var/lib/libvirt/images/alpine.iso '{config.PATH_WITH_SPACE}'")
         # Check file with empty space
         runner.createTest(TestMachinesCreate.VmDialog(self, sourceType='file',
                                                       location=config.PATH_WITH_SPACE,

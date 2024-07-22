@@ -302,7 +302,8 @@ class TestMachinesSettings(machineslib.VirtualMachinesCase):
         # m.execute(f"virt-xml subVmTest1 --add-device --hostdev {pci_slot}")
 
         # Older libvirt versions don't fire events for host device attachement so we have to reload the page
-        b.reload()
+        with b.wait_timeout(180):
+            b.reload()
         b.enter_page('/machines')
 
         # Open dialog

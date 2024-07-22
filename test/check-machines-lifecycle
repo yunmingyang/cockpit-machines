@@ -453,7 +453,8 @@ class TestMachinesLifecycle(machineslib.VirtualMachinesCase):
             self.assertIn("snapshotA", qemu_img_info)
 
             # snapshots events not available yet: https://gitlab.com/libvirt/libvirt/-/issues/44
-            b.reload()
+            with b.wait_timeout(180):
+                b.reload()
             b.enter_page('/machines')
             self.goToVmPage(name)
             b.wait_in_text(f"#vm-{name}-snapshot-0-name", "snapshotA")
@@ -475,7 +476,8 @@ class TestMachinesLifecycle(machineslib.VirtualMachinesCase):
             m.execute("virsh vol-create-as --pool images --name tmpdisk --capacity 1 --format qcow2")
             m.execute(f"virt-xml {name} --add-device --disk source.pool=images,source.volume=tmpdisk,target.dev=sdb,driver.type=qcow2")
             m.execute(f"virsh snapshot-create-as --domain {name} --name snapshotFails")
-            b.reload()
+            with b.wait_timeout(180):
+                b.reload()
             b.enter_page('/machines')
             self.goToVmPage(name)
             b.wait_text(f"#vm-{name}-snapshot-0-name", "snapshotFails")

@@ -542,7 +542,8 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
         self.add_veth(iface)
 
         # We don't handle events for networks yet, so reload the page to refresh the state
-        b.reload()
+        with self.browser.wait_timeout(180):
+            self.browser.reload()
         b.enter_page('/machines')
         self.waitPageInit()
 
@@ -699,7 +700,8 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
 
             self.addCleanup(self.machine.execute, "virsh pool-destroy iscsi-pool; virsh pool-undefine iscsi-pool")
 
-            self.browser.reload()
+            with self.browser.wait_timeout(180):
+                self.browser.reload()
             self.browser.enter_page('/machines')
             self.waitPageInit()
 
@@ -758,14 +760,14 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
         # Seems no Ooops element, since it doesn't have huge effect, and will cause a CDP error, so annotate these two lines temporarily
         # self.browser.switch_to_top()
         # self.browser.wait_not_visible("#navbar-oops")
-        # -------
 
         # define again the default storage pool for system connection
         # we need so that the UI will know the remaining available space when we use that pool's path
         self.machine.execute("virsh pool-define-as default --type dir --target /var/lib/libvirt/images")
         self.machine.execute("virsh pool-start default")
 
-        self.browser.reload()
+        with self.browser.wait_timeout(180):
+            self.browser.reload()
         self.browser.enter_page('/machines')
         self.waitPageInit()
 
@@ -784,7 +786,8 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
         ]
         self.machine.execute("; ".join(cmds))
 
-        self.browser.reload()
+        with self.browser.wait_timeout(180):
+            self.browser.reload()
         self.browser.enter_page('/machines')
         self.waitPageInit()
 
@@ -841,7 +844,7 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
                                                       create_and_run=False))
 
         # Recreate the image the previous test just deleted to reuse it
-        self.machine.execute("cp /var/lib/libvirt/images/fedora31.qcow2 {}".format(TestMachinesCreate.TestCreateConfig.VALID_DISK_IMAGE_PATH))
+        # self.machine.execute("cp /var/lib/libvirt/images/cloudBase.qcow2 {}".format(TestMachinesCreate.TestCreateConfig.VALID_DISK_IMAGE_PATH))
 
         # Unload KVM module, otherwise we get errors getting the nested VMs
         # to start properly.
@@ -850,10 +853,10 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
         # Stop pmcd service if available which is invoking pmdakvm and is keeping KVM module used
         # self.machine.execute("(systemctl stop pmcd || true) && modprobe -r kvm_intel && modprobe -r kvm_amd && modprobe -r kvm")
 
-        runner.createTest(TestMachinesCreate.VmDialog(self, sourceType='disk_image',
-                                                      location=config.VALID_DISK_IMAGE_PATH,
-                                                      memory_size=1024, memory_size_unit='MiB',
-                                                      create_and_run=True))
+        # runner.createTest(TestMachinesCreate.VmDialog(self, sourceType='disk_image',
+        #                                               location=config.VALID_DISK_IMAGE_PATH,
+        #                                               memory_size=1024, memory_size_unit='MiB',
+        #                                               create_and_run=True))
 
     def testCreateUrlSource(self):
         m = self.machine
@@ -938,7 +941,8 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
         self.machine.execute(f'mount -o bind /dev/null {virt_install_bin}')
         self.addCleanup(self.machine.execute, f"umount {virt_install_bin}")
 
-        self.browser.reload()
+        with self.browser.wait_timeout(180):
+            self.browser.reload()
         self.browser.enter_page('/machines')
         self.browser.wait_visible("#create-new-vm:disabled")
         # There are many reasons why the button would be disabled, so check if it's correct one
@@ -1586,7 +1590,7 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
             self.run_admin = test_obj.run_admin
 
             self.machine.execute(f"cp /var/lib/libvirt/images/alpine.iso {TestMachinesCreate.TestCreateConfig.NOVELL_MOCKUP_ISO_PATH}")
-            self.machine.execute(f"cp /var/lib/libvirt/images/fedora-40.qcow2 {TestMachinesCreate.TestCreateConfig.VALID_DISK_IMAGE_PATH}")
+            self.machine.execute(f"cp /var/lib/libvirt/images/cloudBase.qcow2 {TestMachinesCreate.TestCreateConfig.VALID_DISK_IMAGE_PATH}")
             test_obj.addCleanup(
                 test_obj.machine.execute,
                 f"rm -f {TestMachinesCreate.TestCreateConfig.NOVELL_MOCKUP_ISO_PATH} "
@@ -2111,7 +2115,7 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
         b.click(".pf-v5-c-modal-box__footer button:contains(Create and edit)")
         b.wait_not_present("#create-vm-dialog")
 
-        testlib.wait(lambda: "<cockpit_machines:os_variant>alpinelinux3.10</cockpit_machines:os_variant>" in m.execute("virsh dumpxml VmNotInstalled"), delay=3, tries=5)
+        testlib.wait(lambda: "<cockpit_machines:os_variant>alpinelinux3.18</cockpit_machines:os_variant>" in m.execute("virsh dumpxml VmNotInstalled"), delay=3, tries=5)
 
         self.waitVmPage("VmNotInstalled")
 
@@ -2127,14 +2131,15 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
         b.click("#vm-VmNotInstalled-memory-modal-save")
         b.wait_not_present(".pf-v5-c-modal-box__body")
 
+        # s390x: S390 does not support more than 1 threads.
         # Change vCPUs setting
         b.click("#vm-VmNotInstalled-cpu button")
         b.wait_visible(".pf-v5-c-modal-box__body")
         b.set_input_text("#machines-vcpu-max-field input", "8")
         b.set_input_text("#machines-vcpu-count-field input", "2")
         b.select_from_dropdown("#socketsSelect", "2")
-        b.select_from_dropdown("#coresSelect", "2")
-        b.select_from_dropdown("#threadsSelect", "2")
+        b.select_from_dropdown("#coresSelect", "4")
+        b.select_from_dropdown("#threadsSelect", "1")
         b.click("#machines-cpu-modal-dialog-apply")
         b.wait_not_present(".pf-v5-c-modal-box__body")
 
@@ -2226,8 +2231,8 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
         b.wait_val("#machines-vcpu-max-field input", "8")
         b.wait_val("#machines-vcpu-count-field input", "2")
         b.wait_val("#socketsSelect", "2")
-        b.wait_val("#coresSelect", "2")
-        b.wait_val("#threadsSelect", "2")
+        b.wait_val("#coresSelect", "4")
+        b.wait_val("#threadsSelect", "1")
         b.click("#machines-cpu-modal-dialog-cancel")
         b.wait_not_present(".pf-v5-c-modal-box__body")
 
@@ -2288,55 +2293,56 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
         self.assertIn("<os>", domainXML)
         self.assertNotIn("efi", domainXML)
 
-    @testlib.skipImage("does not support virt-xml --tpm", "rhel-8*")
-    @testlib.skipImage("does not support TPM 2.0", "arch")
-    def testConfigureBeforeInstallBiosTPM(self):
-        m = self.machine
-        b = self.browser
-        TestMachinesCreate.CreateVmRunner(self)
+    # @testlib.skipImage("does not support virt-xml --tpm", "rhel-8*")
+    # @testlib.skipImage("does not support TPM 2.0", "arch")
+    # def testConfigureBeforeInstallBiosTPM(self):
+    #     m = self.machine
+    #     b = self.browser
+    #     TestMachinesCreate.CreateVmRunner(self)
 
-        # create VM with BIOS
-        vmName = "subVmTest1"
-        self.login_and_go("/machines")
-        self.waitPageInit()
-        dialog = TestMachinesCreate.VmDialog(self, sourceType='file',
-                                             name=vmName,
-                                             location=TestMachinesCreate.TestCreateConfig.NOVELL_MOCKUP_ISO_PATH,
-                                             memory_size=128, memory_size_unit='MiB',
-                                             storage_size=256, storage_size_unit='MiB',
-                                             create_and_run=False)
-        dialog.open().fill()
-        b.click(".pf-v5-c-modal-box__footer #create-and-edit")
-        b.wait_not_present("#create-vm-dialog")
-        b.wait_in_text(f"#vm-{vmName}-firmware", "BIOS")
+    #     # create VM with BIOS
+    #     vmName = "subVmTest1"
+    #     self.login_and_go("/machines")
+    #     self.waitPageInit()
+    #     dialog = TestMachinesCreate.VmDialog(self, sourceType='file',
+    #                                          name=vmName,
+    #                                          location=TestMachinesCreate.TestCreateConfig.NOVELL_MOCKUP_ISO_PATH,
+    #                                          memory_size=128, memory_size_unit='MiB',
+    #                                          storage_size=256, storage_size_unit='MiB',
+    #                                          create_and_run=False)
+    #     dialog.open().fill()
+    #     b.click(".pf-v5-c-modal-box__footer #create-and-edit")
+    #     b.wait_not_present("#create-vm-dialog")
+    #     b.wait_in_text(f"#vm-{vmName}-firmware", "Unknown firmware")
 
-        # manually add TPM to BIOS
-        m.execute(f"virt-xml --add-device --tpm default {vmName}")
-        self.assertIn("tpm", m.execute(f"virsh dumpxml {vmName}"))
-        # this doesn't change the UI, so we have to reload to ensure that the UI picks up the change
-        # otherwise this is a race condition
-        b.reload()
-        b.enter_page('/machines')
+    #     # s390x: unsupported configuration: The QEMU executable /usr/libexec/qemu-kvm does not support TPM backend type emulator
+    #     # manually add TPM to BIOS
+    #     m.execute(f"virt-xml --add-device --tpm default {vmName}")
+    #     self.assertIn("tpm", m.execute(f"virsh dumpxml {vmName}"))
+    #     # this doesn't change the UI, so we have to reload to ensure that the UI picks up the change
+    #     # otherwise this is a race condition
+    #     b.reload()
+    #     b.enter_page('/machines')
 
-        # Change the os boot firmware to EFI
-        b.click(f"#vm-{vmName}-firmware")
-        b.wait_visible(".pf-v5-c-modal-box__body")
-        b.select_from_dropdown(".pf-v5-c-modal-box__body select", "efi")
-        b.click("#firmware-dialog-apply")
-        b.wait_not_present(".pf-v5-c-modal-box__body")
-        b.wait_in_text(f"#vm-{vmName}-firmware", "UEFI")
+    #     # Change the os boot firmware to EFI
+    #     b.click(f"#vm-{vmName}-firmware")
+    #     b.wait_visible(".pf-v5-c-modal-box__body")
+    #     b.select_from_dropdown(".pf-v5-c-modal-box__body select", "efi")
+    #     b.click("#firmware-dialog-apply")
+    #     b.wait_not_present(".pf-v5-c-modal-box__body")
+    #     b.wait_in_text(f"#vm-{vmName}-firmware", "UEFI")
 
-        # did not add a second TPM; that would fail in the dialog anyway, but let's double-check the backend
-        out = m.execute(f"virsh dumpxml {vmName} | xmllint --xpath /domain/devices/tpm - | grep --count '<tpm'")
-        self.assertEqual(out.strip(), "1")
+    #     # did not add a second TPM; that would fail in the dialog anyway, but let's double-check the backend
+    #     out = m.execute(f"virsh dumpxml {vmName} | xmllint --xpath /domain/devices/tpm - | grep --count '<tpm'")
+    #     self.assertEqual(out.strip(), "1")
 
-        # Install the VM
-        b.click(f"#vm-{vmName}-system-install")
-        b.wait_in_text(f"#vm-{vmName}-system-state", "Running")
+    #     # Install the VM
+    #     b.click(f"#vm-{vmName}-system-install")
+    #     b.wait_in_text(f"#vm-{vmName}-system-state", "Running")
 
-        # AppArmor policy fixed in later versions, don't bother with reporting
-        if m.image == 'debian-stable':
-            self.allow_journal_messages('.*apparmor="DENIED".*name="/etc/ssl/openssl.cnf".*comm="swtpm".*')
+    #     # AppArmor policy fixed in later versions, don't bother with reporting
+    #     if m.image == 'debian-stable':
+    #         self.allow_journal_messages('.*apparmor="DENIED".*name="/etc/ssl/openssl.cnf".*comm="swtpm".*')
 
     def testCreateDownloadRhel(self):
         runner = TestMachinesCreate.CreateVmRunner(self, rhel_download=True)

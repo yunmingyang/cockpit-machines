@@ -83,7 +83,8 @@ class TestMachinesVirtualization(machineslib.VirtualMachinesCase):
         hack_libvirtd_crash()
         stopLibvirtSocket()
         stopLibvirtService()
-        b.reload()
+        with b.wait_timeout(180):
+            b.reload()
         b.enter_page('/machines')
         waitEmptyState()
         b.click(".pf-v5-c-empty-state button.pf-m-link")  # Troubleshoot

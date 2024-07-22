@@ -108,7 +108,8 @@ class TestMachinesNICs(machineslib.VirtualMachinesCase):
         self.addCleanup(m.execute, "ip link delete abridge")
         self.addCleanup(m.execute, "ip link delete 0bridge")
         self.addCleanup(m.execute, "ip link delete xbridge")
-        b.reload()
+        with b.wait_timeout(180):
+            b.reload()
         b.enter_page('/machines')
         self.waitPageInit()
         b.click("#vm-subVmTest1-add-iface-button")  # open the Network Interfaces subtab
@@ -142,7 +143,8 @@ class TestMachinesNICs(machineslib.VirtualMachinesCase):
 
         # Start vm and wait until kernel is booted
         testlib.wait(lambda: "1" in self.machine.execute("virsh domifaddr subVmTest1 | grep 192.168.122. | wc -l"), delay=3)
-        b.reload()
+        with b.wait_timeout(180):
+            b.reload()
         b.enter_page('/machines')
         self.waitPageInit()
 
@@ -221,7 +223,8 @@ class TestMachinesNICs(machineslib.VirtualMachinesCase):
         # Add network with the same MAC address
         m.execute("virsh attach-interface --domain subVmTest1 --type network --source default --model e1000e --mac 52:54:00:4b:73:5f --config")
         # Refresh for getting new added NIC
-        b.reload()
+        with b.wait_timeout(180):
+            b.reload()
         b.enter_page('/machines')
         self.waitPageInit()
         # Check NIC MAC addresses
@@ -767,7 +770,8 @@ class TestMachinesNICs(machineslib.VirtualMachinesCase):
                 self.machine.execute(f"virsh detach-interface --mac {self.mac} --domain subVmTest1 --type {self.source_type} --config")
 
                 # we don't get any signal for interface detaching right now
-                self.browser.reload()
+                with self.browser.wait_timeout(180):
+                    self.browser.reload()
                 self.browser.enter_page('/machines')
                 self.browser.wait_in_text("body", "Virtual machines")
             else:

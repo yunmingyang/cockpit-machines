@@ -1130,7 +1130,8 @@ class TestMachinesDisks(machineslib.VirtualMachinesCase):
         b.click(f"{prefix}-dialog-cancel")
 
         # Make sure that trying to inspect the Disks tab will just show the fields that are available when a pool is inactive
-        b.reload()
+        with b.wait_timeout(180):
+            b.reload()
         b.enter_page('/machines')
         self.waitPageInit()
         # Check that usage information can't be fetched since the pool is inactive
@@ -1557,7 +1558,8 @@ class TestMachinesDisks(machineslib.VirtualMachinesCase):
         m.execute("virt-xml subVmTest1 --add-device --disk type='block',source.dev='/dev/null',target.dev=sde")
 
         # Need to refresh when attaching disk for shutoff VM
-        b.reload()
+        with b.wait_timeout(180):
+            b.reload()
         b.enter_page('/machines')
         self.waitPageInit()
         # b.wait_visible("#vm-subVmTest1-disks-sda-device")

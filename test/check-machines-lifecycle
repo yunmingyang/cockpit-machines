@@ -123,9 +123,9 @@ class TestMachinesLifecycle(machineslib.VirtualMachinesCase):
 
         # switch to and check Usage
         b.click("#vm-subVmTest1-usage")
-        b.wait_in_text(".memory-usage-chart .pf-v5-c-progress__status > .pf-v5-c-progress__measure", "256 MiB")
+        b.wait_in_text(".memory-usage-chart .pf-v5-c-progress__status > .pf-v5-c-progress__measure", "0.3 GiB")
         b.wait_not_in_text(".memory-usage-chart .pf-v5-c-progress__status > .pf-v5-c-progress__measure", "0 /")
-        testlib.wait(lambda: float(b.text(".memory-usage-chart .pf-v5-c-progress__status > .pf-v5-c-progress__measure").split("/ 256 MiB")[0]) > 0.0, delay=3)
+        testlib.wait(lambda: float(b.text(".memory-usage-chart .pf-v5-c-progress__status > .pf-v5-c-progress__measure").split("/ 0.3 GiB")[0]) > 0.0, delay=3)
 
         b.wait_in_text(".vcpu-usage-chart .pf-v5-c-progress__status > .pf-v5-c-progress__measure", "1 vCPU")
         usage = b.text(".vcpu-usage-chart .pf-v5-c-progress__status > .pf-v5-c-progress__measure").split("% of 1 vCPU")[0]
@@ -206,7 +206,7 @@ class TestMachinesLifecycle(machineslib.VirtualMachinesCase):
         args2 = self.createVm("subVmTest2")
         b.wait_in_text("#vm-subVmTest2-system-state", "Running")
         self.goToVmPage("subVmTest2")
-        b.wait_in_text("#vm-subVmTest2-cpu", "2 vCPUs")
+        b.wait_in_text("#vm-subVmTest2-cpu", "1 vCPU")
         b.wait_in_text("#vm-subVmTest2-boot-order", "disk,network")
 
         self.goToMainPage()

@@ -40,14 +40,14 @@ class TestMachinesSettings(machineslib.VirtualMachinesCase):
         self.waitPageInit()
         self.waitVmRow("subVmTest1")
 
-        # m.execute("virt-xml subVmTest1 -c qemu:///system --vcpu 2 --edit")
+        m.execute("virt-xml subVmTest1 -c qemu:///system --vcpu 2 --edit")
 
         b.click("#vm-subVmTest1-system-run")
         b.wait_in_text("#vm-subVmTest1-system-state", "Running")
         self.goToVmPage("subVmTest1")
 
         # Check the synatx of CPU should be "${number} vCPU, ${CPU mode}"
-        b.wait_in_text("#vm-subVmTest1-cpu", "1 vCPU, ")
+        b.wait_in_text("#vm-subVmTest1-cpu", "2 vCPUs, ")
 
         # Check "X" on the dialog
         b.click("#vm-subVmTest1-cpu button")
@@ -72,8 +72,10 @@ class TestMachinesSettings(machineslib.VirtualMachinesCase):
         # Set new socket value
         b.wait_val("#socketsSelect", "4")
         b.set_val("#socketsSelect", "2")
-        b.wait_val("#coresSelect", "1")
-        b.wait_val("#threadsSelect", "2")
+        # s390x: Deprecated CPU topology (considered invalid): Unsupported clusters parameter mustn't be specified as 1;S390 does not support more than 1 threads.
+        # Thus, set the core to 2 manually, then thread should be set to 1
+        b.set_val("#coresSelect", "2")
+        b.wait_val("#threadsSelect", "1")
 
         # Check the warning on the dialog
         b.wait_in_text("#machines-cpu-modal-dialog .pf-v5-c-alert",
@@ -115,8 +117,8 @@ class TestMachinesSettings(machineslib.VirtualMachinesCase):
 
         # Check sockets, cores and threads
         b.wait_val("#socketsSelect", "2")
-        b.wait_val("#coresSelect", "1")
-        b.wait_val("#threadsSelect", "2")
+        b.wait_val("#coresSelect", "2")
+        b.wait_val("#threadsSelect", "1")
 
         b.click("#machines-cpu-modal-dialog-cancel")
         b.wait_not_present("#machines-cpu-modal-dialog")
@@ -132,8 +134,8 @@ class TestMachinesSettings(machineslib.VirtualMachinesCase):
         b.set_input_text("#machines-vcpu-count-field input", "2")
 
         # Set new socket value
-        b.set_val("#coresSelect", "2")
-        b.wait_val("#socketsSelect", "2")
+        b.set_val("#coresSelect", "4")
+        b.wait_val("#socketsSelect", "1")
         b.wait_val("#threadsSelect", "1")
 
         # Save
@@ -141,7 +143,7 @@ class TestMachinesSettings(machineslib.VirtualMachinesCase):
         b.wait_not_present("#machines-cpu-modal-dialog")
 
         testlib.wait(lambda: m.execute(
-            "virsh dumpxml subVmTest1 | tee /tmp/subVmTest1.xml | xmllint --xpath '/domain/cpu/topology[@sockets=\"2\"][@threads=\"1\"][@cores=\"2\"]' -"))
+            "virsh dumpxml subVmTest1 | tee /tmp/subVmTest1.xml | xmllint --xpath '/domain/cpu/topology[@sockets=\"1\"][@threads=\"1\"][@cores=\"4\"]' -"))
 
         # Run VM - this ensures that the internal state is updated before we move on.
         # We need this here because we can't wait for UI updates after we open the modal dialog.
@@ -157,15 +159,15 @@ class TestMachinesSettings(machineslib.VirtualMachinesCase):
         b.wait_visible(".pf-v5-c-modal-box__body")
 
         # Set new socket value
-        b.wait_val("#coresSelect", "2")
-        b.wait_val("#socketsSelect", "2")
+        b.wait_val("#coresSelect", "4")
+        b.wait_val("#socketsSelect", "1")
         b.wait_val("#threadsSelect", "1")
 
         b.wait_in_text("#vm-subVmTest1-cpu", "2 vCPUs")
 
         # Check value of sockets, threads and cores from VM dumpxml
         m.execute(
-            "virsh dumpxml subVmTest1 | xmllint --xpath '/domain/cpu/topology[@sockets=\"2\"][@threads=\"1\"][@cores=\"2\"]' -")
+            "virsh dumpxml subVmTest1 | xmllint --xpath '/domain/cpu/topology[@sockets=\"1\"][@threads=\"1\"][@cores=\"4\"]' -")
 
         # non-persistent VM doesn't have configurable vcpu
         m.execute("virsh undefine subVmTest1")
@@ -266,8 +268,9 @@ class TestMachinesSettings(machineslib.VirtualMachinesCase):
         b.click("#machines-cpu-modal-dialog-apply")
         b.wait_not_present("#machines-cpu-modal-dialog")
         b.wait_in_text("#vm-subVmTest1-cpu .pf-v5-c-description-list__text", "host")
-        b.click("#vm-subVmTest1-system-run")
-        b.wait_in_text("#vm-subVmTest1-cpu .pf-v5-c-description-list__text", "custom")
+        # s390x: host and host passthrough is not support, thus, running the VM will fail
+        # b.click("#vm-subVmTest1-system-run")
+        # b.wait_in_text("#vm-subVmTest1-cpu .pf-v5-c-description-list__text", "custom")
         # In the test ENV libvirt does not properly set the CPU model so we see a tooltip https://bugzilla.redhat.com/show_bug.cgi?id=1913337
         # b.wait_not_present("#cpu-tooltip")
 

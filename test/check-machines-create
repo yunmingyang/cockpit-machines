@@ -922,12 +922,12 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
         # Test detection of ISO file in URL; HACK: unpredictable behaviour, the "failed to install" alert sometimes appears,
         # sometimes not; so run this last
         # s390x: use a real URL for the running VM
-        # Test detection of ISO file in URL
-        runner.createTest(TestMachinesCreate.VmDialog(self, sourceType='url',
-                                                      location="https://dl-cdn.alpinelinux.org/alpine/v3.15/releases/s390x/alpine-standard-3.15.4-s390x.iso",
-                                                      memory_size=256, memory_size_unit='MiB',
-                                                      storage_pool=NO_STORAGE,
-                                                      create_and_run=True))
+        # s390x: Unknown driver 'https'
+        # runner.createTest(TestMachinesCreate.VmDialog(self, sourceType='url',
+        #                                               location="https://dl-cdn.alpinelinux.org/alpine/v3.15/releases/s390x/alpine-standard-3.15.4-s390x.iso",
+        #                                               memory_size=256, memory_size_unit='MiB',
+        #                                               storage_pool=NO_STORAGE,
+        #                                               create_and_run=True))
         # lots of OSes don't have a qemu-block https driver
         self.allow_browser_errors("spawn 'vm creation' returned error.*Unknown driver 'https'")
 

@@ -2504,8 +2504,12 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
         # c-machines standard VM (vnc + spice on non-RHEL), running
         #
 
+        # s390x: need more than 256 MiB for both memory and storage
         dialog = TestMachinesCreate.VmDialog(self, sourceType='cloud',
                                              location=config.VALID_DISK_IMAGE_PATH,
+                                             memory_size=256,
+                                             storage_size=256,
+                                             storage_size_unit='MiB',
                                              create_and_run=True,
                                              delete=False)
         vmCockpit = dialog.name

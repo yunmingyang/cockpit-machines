@@ -174,6 +174,8 @@ class TestMachinesLifecycle(machineslib.VirtualMachinesCase):
 
         # the shut off button beside the VM name
         self.waitGuestBooted(args['logfile'])
+        # Add a wait here, as sometimes the following shutdown will be blocked
+        time.sleep(5)
         b.click("#vm-subVmTest1-system-shutdown-button")
         b.wait_visible("#vm-subVmTest1-system-confirm-action-modal")
         b.click(".pf-v5-c-modal-box__footer #vm-subVmTest1-system-off")

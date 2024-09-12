@@ -402,7 +402,8 @@ class VirtualMachinesCase(testlib.MachineCase, VirtualMachinesCaseHelpers, stora
             # does not exist in the first place and we don't need to be
             # careful to leave it in place.
             #
-            m.execute("rm -f /dev/kvm")
+            # Keep /dev/kvm as bare mental
+            # m.execute("rm -f /dev/kvm")
 
         m = self.machine
 

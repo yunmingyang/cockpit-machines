@@ -450,10 +450,10 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
 
         # try to CREATE few machines
         runner.createDownloadAnOSTest(TestMachinesCreate.VmDialog(self, sourceType='os',
-                                                                  expected_memory_size=1,
-                                                                  expected_storage_size=10,
-                                                                  os_name=config.FEDORA_39,
-                                                                  os_short_id=config.FEDORA_39_SHORTID,
+                                                                  expected_memory_size=128,
+                                                                  expected_storage_size=128,
+                                                                  os_name=config.FEDORA_28,
+                                                                  os_short_id=config.FEDORA_28_SHORTID,
                                                                   create_and_run=True))
 
         runner.createDownloadAnOSTest(TestMachinesCreate.VmDialog(self, sourceType='os',
@@ -461,34 +461,34 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
                                                                   user_password="catsaremybestfr13nds",
                                                                   user_login="foo",
                                                                   root_password="dogsaremybestfr13nds",
-                                                                  storage_size=2046, storage_size_unit='MiB',
-                                                                  os_name=config.FEDORA_39,
-                                                                  os_short_id=config.FEDORA_39_SHORTID))
+                                                                  storage_size=246, storage_size_unit='MiB',
+                                                                  os_name=config.FEDORA_28,
+                                                                  os_short_id=config.FEDORA_28_SHORTID))
 
         # Don't create root account
         runner.createDownloadAnOSTest(TestMachinesCreate.VmDialog(self, sourceType='os',
                                                                   is_unattended=True, profile="desktop",
                                                                   user_login="foo",
                                                                   user_password="catsaremybestfr13nds",
-                                                                  storage_size=2056, storage_size_unit='MiB',
-                                                                  os_name=config.FEDORA_39,
-                                                                  os_short_id=config.FEDORA_39_SHORTID))
+                                                                  storage_size=256, storage_size_unit='MiB',
+                                                                  os_name=config.FEDORA_28,
+                                                                  os_short_id=config.FEDORA_28_SHORTID))
 
         # Don't create user account
         runner.createDownloadAnOSTest(TestMachinesCreate.VmDialog(self, sourceType='os',
                                                                   is_unattended=True, profile="jeos",
                                                                   root_password="catsaremybestfr13nds",
-                                                                  storage_size=2056, storage_size_unit='MiB',
-                                                                  os_name=config.FEDORA_39,
-                                                                  os_short_id=config.FEDORA_39_SHORTID))
+                                                                  storage_size=256, storage_size_unit='MiB',
+                                                                  os_name=config.FEDORA_28,
+                                                                  os_short_id=config.FEDORA_28_SHORTID))
 
         # name already used from a VM that is currently being created
         # https://bugzilla.redhat.com/show_bug.cgi?id=1780451
         runner.createDownloadAnOSTest(TestMachinesCreate.VmDialog(self, name='existing-name', sourceType='os',
-                                                                  expected_memory_size=1,
-                                                                  expected_storage_size=10,
-                                                                  os_name=config.FEDORA_39,
-                                                                  os_short_id=config.FEDORA_39_SHORTID,
+                                                                  expected_memory_size=128,
+                                                                  expected_storage_size=128,
+                                                                  os_name=config.FEDORA_28,
+                                                                  os_short_id=config.FEDORA_28_SHORTID,
                                                                   create_and_run=True, delete=False))
 
         runner.checkDialogFormValidationTest(TestMachinesCreate.VmDialog(self, "existing-name", storage_size=1,
@@ -947,9 +947,6 @@ vnc_password= "{vnc_passwd}"
 
         FEDORA_29 = 'Fedora 29'
 
-        FEDORA_39 = 'Fedora Linux 39'
-        FEDORA_39_SHORTID = 'fedora39'
-
         RHEL_8_1 = 'Red Hat Enterprise Linux 8.1 (Ootpa)'
         RHEL_8_1_SHORTID = 'rhel8.1'
         RHEL_8_2 = 'Red Hat Enterprise Linux 8.2 (Ootpa)'
@@ -1363,8 +1360,9 @@ vnc_password= "{vnc_passwd}"
             # well.  (On some OSes the created VM crashes in the
             # kernel, on others, the BIOS can't find a bootable
             # device. Maybe that's the difference.)
-            if self.create_and_run and self.machine.image.startswith(('opensuse-tumbleweed', 'centos-10', 'rhel-10')):
-                self.machine.execute(f"while {virt_install_cmd}; do sleep 1; done", timeout=300)
+            # Fake Fedora 28 will not exist as there will be an kernel panic, so that skip these two lines
+            # if self.create_and_run and self.machine.image.startswith(('opensuse-tumbleweed', 'centos-10', 'rhel-10')):
+            #     self.machine.execute(f"while {virt_install_cmd}; do sleep 1; done", timeout=300)
 
         def fill(self):
             b = self.browser

@@ -806,7 +806,7 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
                                                       storage_pool=NO_STORAGE,
                                                       create_and_run=True,))
 
-        self.machine.execute(f"cp /var/lib/libvirt/images/alpine.iso '{config.PATH_WITH_SPACE}'")
+        self.machine.execute(f"cp /var/lib/libvirt/images/test.iso '{config.PATH_WITH_SPACE}'")
         # Check file with empty space
         runner.createTest(TestMachinesCreate.VmDialog(self, sourceType='file',
                                                       location=config.PATH_WITH_SPACE,
@@ -1589,7 +1589,7 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
             self.test_obj = test_obj
             self.run_admin = test_obj.run_admin
 
-            self.machine.execute(f"cp /var/lib/libvirt/images/alpine.iso {TestMachinesCreate.TestCreateConfig.NOVELL_MOCKUP_ISO_PATH}")
+            self.machine.execute(f"cp /var/lib/libvirt/images/test.iso {TestMachinesCreate.TestCreateConfig.NOVELL_MOCKUP_ISO_PATH}")
             self.machine.execute(f"cp /var/lib/libvirt/images/cloudBase.qcow2 {TestMachinesCreate.TestCreateConfig.VALID_DISK_IMAGE_PATH}")
             test_obj.addCleanup(
                 test_obj.machine.execute,

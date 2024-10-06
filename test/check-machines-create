@@ -315,6 +315,12 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
         runner.checkAutomationTab(TestMachinesCreate.VmDialog(self,
                                                               sourceType='cloud'))
 
+        # Some detail checks when selecting cloud base image
+        runner.checkCloudImageDetailsTest(TestMachinesCreate.VmDialog(self,
+                                                                      sourceType='cloud',
+                                                                      location=config.VALID_DISK_IMAGE_PATH,
+                                                                      storage_size=10, storage_size_unit='MiB'))
+
         # try to CREATE few machines
         # --cloud-init user-data option exists since virt-install >= 3.0.0
         runner.createCloudBaseImageTest(TestMachinesCreate.VmDialog(self, sourceType='cloud',
@@ -1569,6 +1575,62 @@ vnc_password= "{vnc_passwd}"
 
             return self
 
+        def checkCloudImageDetails(self, dialog):
+            b = self.browser
+
+            b.select_from_dropdown("#source-type", dialog.sourceType)
+            b.wait_attr_contains("#source-file-group .pf-v5-c-form-control input",
+                                 "placeholder",
+                                 "Path to cloud image file on host's file system")
+            b.click("#storage-select")
+            b.wait_not_present('.pf-v5-c-select button:contains("No storage")')
+            b.wait_visible(".pf-v5-c-tabs__list button[aria-disabled=false]:contains(Automation)")
+            b.wait_visible("#create-and-edit[aria-disabled=false]")
+
+            b.click(".pf-v5-c-tabs__list button:contains(Automation)")
+            b.wait_in_text("#create-vm-dialog-root-password-pw1-group", "Root password")
+            b.wait_in_text("#create-vm-dialog-user-login-group", "User login")
+            b.wait_in_text("#create-vm-dialog-user-password-pw1-group", "User password")
+
+            # Check the popup beside the inputs on the Automation tab
+            def checkThePopup(user):
+                b.click(f"#create-vm-dialog-{user}-password-pw1-group button.pf-v5-c-form__group-label-help")
+
+                # Check the hint popup after clicking the button beside the root password input
+                text = "set a root password" if user == "root" else "have a user account created"
+                b.wait_in_text(".pf-v5-c-popover.pf-m-top",
+                               f"Leave the password blank if you do not wish to {text}")
+
+                # Close the hint popup
+                b.click(".pf-v5-c-popover.pf-m-top button")
+                b.wait_not_present(".pf-v5-c-popover.pf-m-top")
+            checkThePopup("root")
+            checkThePopup("user")
+
+            # The content of the inputs should be changed even though the source type is changed
+            b.set_input_text("#create-vm-dialog-root-password-pw1", "test")
+            b.set_input_text("#user-login", "test")
+            b.set_input_text("#create-vm-dialog-user-password-pw1", "test")
+
+            b.click(".pf-v5-c-tabs__list button:contains('Details')")
+            b.select_from_dropdown("#source-type", "os")
+            b.wait_visible(".pf-v5-c-tabs__list button[aria-disabled=true]:contains(Automation)")
+            b.select_from_dropdown("#source-type", "cloud")
+            b.click(".pf-v5-c-tabs__list button:contains(Automation)")
+            b.wait_attr("#create-vm-dialog-root-password-pw1", "value", "test")
+            b.wait_attr("#user-login", "value", "test")
+            b.wait_attr("#create-vm-dialog-user-password-pw1", "value", "test")
+
+            # Input all fields for following creation
+            b.click(".pf-v5-c-tabs__list button:contains('Details')")
+
+            b.set_input_text("#vm-name", self.name)
+
+            b.click("#os-select-group > div button")
+            b.click(f"#os-select li:contains('{self.os_name}') button")
+            b.wait_attr("#os-select-group input", "value", self.os_name)
+
+            return self
     class CreateVmRunner:
 
         def __init__(self, test_obj, rhel_download=False):
@@ -2081,6 +2143,12 @@ vnc_password= "{vnc_passwd}"
                 self.browser.wait_visible(".pf-v5-c-tabs__list button[aria-disabled=false]:contains(Automation)")
 
             dialog.cancel()
+
+        def checkCloudImageDetailsTest(self, dialog):
+            dialog.open().checkCloudImageDetails().createAndVerifyVirtInstallArgsCloudInit().cancel()
+
+            if dialog.delete:
+                self._deleteVm(dialog).checkEnvIsEmpty()
 
     # Check various configuration changes made before VM installation persist after installation
     def testConfigureBeforeInstall(self):

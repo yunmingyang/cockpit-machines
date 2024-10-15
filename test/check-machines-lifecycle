@@ -368,6 +368,9 @@ class TestMachinesLifecycle(machineslib.VirtualMachinesCase):
         b.set_input_text("#rename-dialog-new-name", "new")
         b.click("#rename-dialog-confirm")
         b.wait_in_text(".pf-v5-c-modal-box__body .pf-v5-c-alert.pf-m-danger", "Can't rename domain to itself")
+        # Close the dialog, or in firefox, the page could be in the VM detail page
+        b.click("#rename-dialog-confirm + button")
+        b.wait_not_present("#rename-dialog-confirm")
 
         self.goToVmPage("new")
         self.performAction("new", "rename")

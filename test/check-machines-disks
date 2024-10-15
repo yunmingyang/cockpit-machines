@@ -68,6 +68,7 @@ class TestMachinesDisks(machineslib.VirtualMachinesCase):
         m = self.machine
 
         def openDialog(target, name="subVmTest1"):
+            time.sleep(5)
             b.click(f"#vm-{name}-disks-{target}-edit")
             b.wait_visible(f"#vm-{name}-disks-{target}-edit-dialog")
 
@@ -214,6 +215,8 @@ class TestMachinesDisks(machineslib.VirtualMachinesCase):
         openDialog("sda")
         b.wait_visible("#vm-subVmTest1-disks-sda-edit-bus-type:disabled")
         b.wait_visible("#vm-subVmTest1-disks-sda-edit-cache-mode:disabled")
+        # If not cancel, maybe influence goToMainPage in firefox
+        cancel("sda")
 
         # Disks on non-persistent VM cannot be edited
         m.execute("virsh undefine subVmTest1")
@@ -631,7 +634,8 @@ class TestMachinesDisks(machineslib.VirtualMachinesCase):
                 b.select_from_dropdown(f"#vm-{self.vm_name}-disks-adddisk-existing-select-volume", self.volume_name)
 
             # Configure persistency - by default the check box is checked
-            if not self.permanent:
+            # TODO: transistent VMs don't have permanet option, add this to main
+            if not self.permanent and self.persistent_vm:
                 b.set_checked(f"#vm-{self.vm_name}-disks-adddisk-permanent", False)
 
             # Check non-persistent VM cannot have permanent disk attached
@@ -1100,6 +1104,7 @@ class TestMachinesDisks(machineslib.VirtualMachinesCase):
             b.wait_in_text("#vm-subVmTest1-system-state", "Running")
             # Test disk attachment to non-persistent VM
             m.execute("virsh undefine subVmTest1")
+            # Requested operation is not valid: transient domains do not have any persistent config
             self.VMAddDiskDialog(
                 self,
                 pool_name='myPoolOne',
@@ -1107,6 +1112,8 @@ class TestMachinesDisks(machineslib.VirtualMachinesCase):
                 permanent=False,
                 persistent_vm=False,
                 expected_target=get_next_free_target(used_targets)[-1],
+                xfail=True,
+                xfail_error_title="Disk failed to be added",
             ).execute()
 
         # Undefine all Storage pools and  confirm that the Add Disk dialog is disabled

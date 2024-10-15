@@ -260,6 +260,9 @@ class VirtualMachinesCaseHelpers:
         b = self.browser
 
         b.wait_visible(f"#vm-{vm_name}-disks-{target}-device")
+        # TestMachinesDisks.testDetachDisk in firefox fails with "move target out of bounds: Origin element is not displayed"
+        # add sleep could avoid it
+        time.sleep(5)
         self.dropdownAction(f"#vm-{vm_name}-disks-{target}-action-kebab", f"#delete-vm-{vm_name}-disks-{target}")
         b.wait_visible(".pf-v5-c-modal-box")
         b.wait_in_text("#delete-resource-modal-target", target)

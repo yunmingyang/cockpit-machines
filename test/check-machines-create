@@ -102,7 +102,7 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
         runner.checkFilteredOsTest(TestMachinesCreate.VmDialog(self, os_name=config.WINDOWS_SERVER_10, os_search_name=config.WINDOWS_SERVER_10_SHORT))
 
         # check OS versions are sorted in alphabetical order
-        runner.checkSortedOsTest(TestMachinesCreate.VmDialog(self), [config.FEDORA_29, config.FEDORA_28])
+        runner.checkSortedOsTest(TestMachinesCreate.VmDialog(self, check_sorted_os=True), [config.FEDORA_29, config.FEDORA_28])
 
         # Memory unit conversion
         runner.unitPredictionTest(TestMachinesCreate.VmDialog(self, sourceType='disk-image'))
@@ -979,7 +979,9 @@ vnc_password= "{vnc_passwd}"
                      connection="system",
                      offline_token=None,
                      offline_token_autofilled=True,
-                     pixel_test_tag=None):
+                     pixel_test_tag=None,
+                     check_sorted_os=False,
+                     check_rhel_downloadable=False):
 
             TestMachinesCreate.VmDialog.vmId += 1  # This variable is static - don't use self here
 
@@ -1031,6 +1033,9 @@ vnc_password= "{vnc_passwd}"
             self.offline_token_autofilled = offline_token_autofilled
 
             self.pixel_test_tag = pixel_test_tag
+
+            self.check_sorted_os = check_sorted_os
+            self.check_rhel_downloadable = check_rhel_downloadable
 
         def open(self):
             b = self.browser
@@ -1193,6 +1198,14 @@ vnc_password= "{vnc_passwd}"
             # Check only RHEL >= 8 is shown
             b.wait_visible(f"#os-select li button:contains('{TestMachinesCreate.TestCreateConfig.RHEL_8_1}')")
             b.wait_not_present(f"#os-select li button:contains('{TestMachinesCreate.TestCreateConfig.RHEL_7_1}')")
+
+            # when using firefox, the os-select list will be closed unexpectedly during checkRhelIsDownloadable
+            # and the OS is set to debian-testing
+            # Thus, close the list manually here
+            # TODO: update makefile and update test/common in the future, that may avoid this issue
+            if os.environ.get("TEST_BROWSER") == "firefox" and self.check_rhel_downloadable:
+                b.click('#os-select-group .pf-v5-c-select .pf-v5-c-button[aria-label=\"Options menu\"]')
+                b.wait_not_present("#os-select")
 
             return self
 
@@ -1459,6 +1472,15 @@ vnc_password= "{vnc_passwd}"
 
         def cancel(self, force=False):
             b = self.browser
+
+            # when using firefox, the os-select list will be closed unexpectedly during checkSortedOsTest
+            # and the OS is set to debian-testing
+            # Thus, close the list manually here
+            # TODO: update makefile and update test/common in the future, that may avoid this issue
+            if os.environ.get("TEST_BROWSER") == "firefox" and self.check_sorted_os:
+                b.click('#os-select-group .pf-v5-c-select .pf-v5-c-button[aria-label=\"Options menu\"]')
+                b.wait_not_present("#os-select")
+
             if b.is_present("#create-vm-dialog"):
                 b.click(".pf-v5-c-modal-box__footer button:contains(Cancel)")
                 b.wait_not_present("#create-vm-dialog")
@@ -2387,7 +2409,7 @@ vnc_password= "{vnc_passwd}"
                           check_env_empty=False)
 
         # Check only RHEL >= 8 are available for download
-        runner.checkRhelIsDownloadableTest(TestMachinesCreate.VmDialog(self))
+        runner.checkRhelIsDownloadableTest(TestMachinesCreate.VmDialog(self, check_rhel_downloadable=True))
 
         # Change token saved at localStorage to imitate expiration of a token
         b.call_js_func("localStorage.setItem", "rhsm-offline-token", "expired_token")

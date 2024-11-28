@@ -70,6 +70,8 @@ class TestMachinesLifecycle(machineslib.VirtualMachinesCase):
         # We want no initial watchdog
         args = self.createVm("subVmTest1", os="linux2016")
 
+        # There will be ph_wait_cond is not define if no this sleep here
+        time.sleep(5)
         self.login_and_go("/machines", user=user, superuser=superuser)
 
         if expect_empty_list:
@@ -80,6 +82,8 @@ class TestMachinesLifecycle(machineslib.VirtualMachinesCase):
         self.waitVmRow("subVmTest1")
 
         def checkConnectionDescription(button: str, text: str):
+            # Add a wait for enabling the button
+            time.sleep(2)
             b.click(button)
             b.wait_visible("#create-vm-dialog")
             b.click('#create-vm-dialog button[aria-label="more info"]')

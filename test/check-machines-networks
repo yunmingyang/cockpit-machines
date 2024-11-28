@@ -562,10 +562,15 @@ class TestMachinesNetworks(machineslib.VirtualMachinesCase):
         b.wait_in_text("#card-pf-networks", "2 Networks")
 
         self.goToVmPage("subVmTest1")
+        # If no this sleep, the edit button may be disabled
+        time.sleep(2)
 
         mac = b.text("#vm-subVmTest1-network-1-mac")
         next_mac = self.get_next_mac(mac)
         m.execute(f'virsh attach-interface --persistent subVmTest1 bridge virbr0 --model virtio --mac {next_mac}')
+
+        # Sleep for waiting the nic is present
+        time.sleep(2)
 
         # Wait for the edit button
         b.click("#vm-subVmTest1-network-1-edit-dialog")

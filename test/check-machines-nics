@@ -230,13 +230,14 @@ class TestMachinesNICs(machineslib.VirtualMachinesCase):
         # Detach NIC when the VM is shutoff, Also check this issue: https://bugzilla.redhat.com/show_bug.cgi?id=1791543
         self.performAction("subVmTest1", "off")
         # Attach since no NIC now
+        # only virtio could be used when running the VM
         attach_cmd = "virsh attach-interface --domain subVmTest1"
         m.execute(f"""
         {attach_cmd} --type network --source default --model virtio --mac 52:54:00:4b:73:5f --config
         {attach_cmd} --type bridge --source virbr0 --model virtio --mac 52:54:00:4b:73:6f --config
         {attach_cmd} --type network --source default --model virtio --mac 52:54:00:4b:73:4f --config
         # Add network with the same MAC address
-        {attach_cmd} --type network --source default --model e1000e --mac 52:54:00:4b:73:5f --config
+        {attach_cmd} --type network --source default --model virtio --mac 52:54:00:4b:73:5f --config
         """)
 
         # Refresh for getting new added NIC
@@ -250,7 +251,7 @@ class TestMachinesNICs(machineslib.VirtualMachinesCase):
         b.wait_text("#vm-subVmTest1-network-3-mac", "52:54:00:4b:73:5f")
         b.wait_text("#vm-subVmTest1-network-3-model", "virtio")
         b.wait_text("#vm-subVmTest1-network-4-mac", "52:54:00:4b:73:5f")
-        b.wait_text("#vm-subVmTest1-network-4-model", "e1000e")
+        b.wait_text("#vm-subVmTest1-network-4-model", "virtio")
         # Detach
         self.deleteIface(2, "52:54:00:4b:73:4f", "subVmTest1")
         with b.wait_timeout(90):
@@ -263,9 +264,8 @@ class TestMachinesNICs(machineslib.VirtualMachinesCase):
         with b.wait_timeout(90):
             b.wait_not_present("#vm-subVmTest1-network-3-mac")
         b.wait_text("#vm-subVmTest1-network-2-mac", "52:54:00:4b:73:5f")
-        b.wait_text("#vm-subVmTest1-network-2-model", "e1000e")
+        b.wait_text("#vm-subVmTest1-network-2-model", "virtio")
 
-        # aarch64: The VM disappear after undefine, try to reproduce manually, then submit an issue if it could be reproduced
         # Test for bugzilla #2030948
         b.click("#vm-subVmTest1-system-run")
         m.execute("virsh undefine --nvram subVmTest1")

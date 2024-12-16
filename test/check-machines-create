@@ -597,7 +597,8 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
         # bios.set('useserial', 'yes')
 
         # # Add a serial console of type file
-        # console = ET.fromstring(m.execute("virt-xml --build --console file,path=/tmp/serial.txt,target_type=serial"))
+        # console = ET.fromstring(
+        #     m.execute("virt-xml --build --console file,path=/tmp/serial.txt,target_type=serial"))
         # self.addCleanup(m.execute, "rm -f /tmp/serial.txt")
         # devices = root.find('devices')
         # devices.append(console)
@@ -2200,7 +2201,8 @@ vnc_password= "{vnc_passwd}"
         self.assertIn("tpm", m.execute("virsh dumpxml VmNotInstalled"))
 
         # aarch64: firmware type 'bios' does not support nvram when changing by virsh,
-        # aarch64: after removing nvram, another error is "Unable to find 'bios' firmware that is compatible with the current configuration"
+        # aarch64: after removing nvram, another error is "Unable to find 'bios' firmware
+        # aarch64: that is compatible with the current configuration"
         # TODO: submit a issue that not supported firware should not be shown
         # Change the os boot firmware configuration
         # b.wait_in_text("#vm-VmNotInstalled-firmware", "BIOS")

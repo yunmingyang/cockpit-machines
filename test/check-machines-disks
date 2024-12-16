@@ -243,7 +243,7 @@ class TestMachinesDisks(machineslib.VirtualMachinesCase):
         self.goToMainPage()
         self.createVm("subVmTest2", running=False, os="unknown")
         self.goToVmPage("subVmTest2")
-        self.waitDisks(["hda"], vm="subVmTest2")
+        self.waitDisks(["vda"], vm="subVmTest2")
 
         b.wait_in_text("#vm-subVmTest2-disks-vda-bus", "virtio")
 
@@ -1294,6 +1294,8 @@ class TestMachinesDisks(machineslib.VirtualMachinesCase):
             self,
             mode='custom-path'
         ).openDialog()
+        # The bug is still there if no sleep here
+        time.sleep(5)
         b.click(f"{prefix}-file-autocomplete .pf-v5-c-menu-toggle__button")
         b.wait_visible(".pf-v5-c-menu__content")
         b.key("ArrowDown")

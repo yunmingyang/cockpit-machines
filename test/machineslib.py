@@ -42,7 +42,6 @@ class VirtualMachinesCaseHelpers:
     machine: testvm.Machine
 
     def waitPageInit(self):
-        m = self.machine
         virtualization_disabled_ignored = \
                 self.browser.call_js_func("localStorage.getItem", "virtualization-disabled-ignored") == "true"
         # TODO: If failed, hard code virtualization_enabled with True
@@ -223,6 +222,7 @@ class VirtualMachinesCaseHelpers:
         command = [f"virt-install --connect qemu:///{connection} --name {name} "
                    f"--os-variant {os} "
                    "--boot hd,network "
+                   "--cpu max "
                    "--vcpus 1 "
                    f"--memory {memory} "
                    f"--import --disk {img} "

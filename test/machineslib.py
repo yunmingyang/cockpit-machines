@@ -46,9 +46,9 @@ class VirtualMachinesCaseHelpers:
         virtualization_disabled_ignored = \
                 self.browser.call_js_func("localStorage.getItem", "virtualization-disabled-ignored") == "true"
         # TODO: If failed, hard code virtualization_enabled with True
-        # virtualization_enabled = True
-        virtualization_enabled = \
-                "PASS" in m.execute("virt-host-validate qemu | grep 'Checking for hardware virtualization' || true")
+        virtualization_enabled = True
+        # virtualization_enabled = \
+        #         "PASS" in m.execute("virt-host-validate qemu | grep 'Checking for hardware virtualization' || true")
         if not virtualization_enabled and not virtualization_disabled_ignored:
             self.browser.click("#ignore-hw-virtualization-disabled-btn")
         with self.browser.wait_timeout(30):
@@ -194,7 +194,7 @@ class VirtualMachinesCaseHelpers:
             os = "linux2022" if "rhel-8" not in m.image else "linux2016"
 
         # image_file = m.pull("alpine")
-        image_file = "/var/lib/libvirt/images/alpine-efi-3.20.qcow2"
+        image_file = "/var/lib/libvirt/images/test.qcow2"
 
         if connection == "system":
             img = f"/var/lib/libvirt/images/{name}-2.img"

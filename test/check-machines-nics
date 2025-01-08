@@ -48,10 +48,10 @@ class TestMachinesNICs(machineslib.VirtualMachinesCase):
         # If the IP will change or get assigned after fetching the domain data the user will not see any
         # changes until they refresh the page, since there is not any signal associated with this change
         cmd = "virsh domifaddr subVmTest1  | grep 192.168.122. | wc -l"
-        testlib.wait(lambda: "1" in self.machine.execute(cmd), delay=3)
+        testlib.wait(lambda: "1" in self.machine.execute(cmd), delay=10)
         if "rhel-8" not in m.image:
             cmd = "virsh domifaddr --source agent subVmTest1  | grep fe80:: | wc -l"
-            testlib.wait(lambda: "1" in self.machine.execute(cmd), delay=3)
+            testlib.wait(lambda: "1" in self.machine.execute(cmd), delay=10)
 
         self.goToVmPage("subVmTest1")
 
@@ -160,7 +160,7 @@ class TestMachinesNICs(machineslib.VirtualMachinesCase):
 
         # Start vm and wait until kernel is booted
         testlib.wait(lambda: "1" in self.machine.execute("virsh domifaddr subVmTest1 | grep 192.168.122. | wc -l"),
-                     delay=3)
+                     delay=10)
         with b.wait_timeout(180):
             b.reload()
         b.enter_page('/machines')

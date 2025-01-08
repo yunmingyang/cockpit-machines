@@ -153,7 +153,8 @@ fullscreen=0
             b.key("Enter")
             if "Welcome to Alpine Linux" in b.text(f"#{name}-terminal .xterm-accessibility-tree"):
                 break
-            time.sleep(1)
+            # aarch64: increase the time as very slow booting
+            time.sleep(10)
         # Make sure the content of console is expected
         testlib.wait(lambda: "Welcome to Alpine Linux" in b.text(f"#{name}-terminal .xterm-accessibility-tree"))
 

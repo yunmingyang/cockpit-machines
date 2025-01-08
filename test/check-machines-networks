@@ -1062,7 +1062,7 @@ class TestMachinesNetworks(machineslib.VirtualMachinesCase):
         # Check that the static IP is correctly assigned to the VM
         m.execute("virsh start subVmTest1")
         testlib.wait(lambda: "1" in self.machine.execute("virsh domifaddr subVmTest1 | grep 192.168.122.222 | wc -l"),
-                     delay=3)
+                     delay=10)
 
 
 if __name__ == '__main__':

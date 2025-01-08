@@ -92,9 +92,11 @@ class VirtualMachinesCaseHelpers:
         if action in ["resume", "run", "reboot", "forceReboot"]:
             b.wait_in_text(f"#vm-{vmName}-{connectionName}-state", "Running")
             if logPath:
-                testlib.wait(lambda: "Booting" in m.execute(f"cat {logPath}"))
+                testlib.wait(lambda: "Booting" in m.execute(f"cat {logPath}"),
+                             delay=5)
         if action == "forceOff" or action == "off":
-            b.wait_in_text(f"#vm-{vmName}-{connectionName}-state", "Shut off")
+            # aarch64: In most cases, need to wait a long time for the VM closed, thus change to wait function
+            testlib.wait(lambda: "Shut off" in b.text(f"#vm-{vmName}-{connectionName}-state"), delay=5)
 
     def goToVmPage(self, vmName, connectionName='system'):
         self.browser.click(f"tbody tr[data-row-id=\"vm-{vmName}-{connectionName}\"] a.vm-list-item-name")

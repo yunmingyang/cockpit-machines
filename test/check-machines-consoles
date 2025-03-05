@@ -57,7 +57,11 @@ fullscreen=0
         if self.browser.browser == "chromium":
             fname = "download"
         else:
-            testlib.wait(lambda: len(os.listdir(self.browser.driver.download_dir)) == 1)
+            # testlib.wait(lambda: len(os.listdir(self.browser.driver.download_dir)) == 1)
+            # It will block the code in some downstream environment
+            # And the download should happen and finish very quickly
+            # Thus, add a sleep here for avoiding the blocking
+            time.sleep(1)
             fname = os.listdir(self.browser.driver.download_dir)[0]
 
         self.waitDownloadFile(fname, content=content)
@@ -267,7 +271,7 @@ fullscreen=0
     def testExternalConsoleMultiHost(self):
         b = self.browser
 
-        my_ip = "172.27.0.15"
+        my_ip = os.getenv("REMOTE_MACHINE")
         name = "subVmTest1"
 
         self.setup_ssh_auth()
@@ -311,7 +315,7 @@ fullscreen=0
 
         host = f"admin@{my_ip}"
 
-        b.add_machine(host, password=None, known_host=True, expect_warning=False)
+        b.add_machine(host, password=os.getenv("REMOTE_PASSWORD"), known_host=True, expect_warning=False)
 
         b.go(f"/@{host}/machines")
         b.enter_page("/machines", host=host)

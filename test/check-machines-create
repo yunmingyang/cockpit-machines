@@ -170,6 +170,7 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
                                                                          create_and_run=False),
                                              {"source-url": "Installation source must not be empty"})
 
+        time.sleep(5)
         # user password
         runner.checkDialogFormValidationTest(TestMachinesCreate.VmDialog(self, sourceType='cloud',
                                                                          storage_size=10, storage_size_unit='MiB',
@@ -2575,7 +2576,7 @@ vnc_password= "{vnc_passwd}"
         #
         # c-machines standard VM (vnc + spice on non-RHEL), running
         #
-
+        time.sleep(5)
         dialog = TestMachinesCreate.VmDialog(self, sourceType='cloud',
                                              location=config.VALID_DISK_IMAGE_PATH,
                                              create_and_run=True,

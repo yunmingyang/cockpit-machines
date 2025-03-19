@@ -504,6 +504,7 @@ class TestMachinesStoragePools(machineslib.VirtualMachinesCase):
         m.execute(f"parted {dev} mklabel gpt")
         m.execute(f"parted -s {dev} mkpart primary ext4 20kiB 2000kiB")
         part_dev = f"{dev}1"
+        time.sleep(1)
         m.execute(f"mkfs.ext4 {part_dev}")
         StoragePoolCreateDialog(
             self,

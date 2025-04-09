@@ -680,6 +680,7 @@ vnc_password= "{vnc_passwd}"
         ]
         self.machine.execute("; ".join(cmds))
 
+        time.sleep(5)
         self.login_and_go("/machines")
         self.waitPageInit()
 
@@ -705,6 +706,7 @@ vnc_password= "{vnc_passwd}"
 
             self.addCleanup(self.machine.execute, "virsh pool-destroy iscsi-pool; virsh pool-undefine iscsi-pool")
 
+            time.sleep(5)
             self.browser.reload()
             self.browser.enter_page('/machines')
             self.waitPageInit()

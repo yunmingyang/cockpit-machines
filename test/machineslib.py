@@ -389,8 +389,8 @@ class VirtualMachinesCaseHelpers:
         time.sleep(0.5)
 
 
-class VirtualMachinesCase(testlib.MachineCase, VirtualMachinesCaseHelpers,
-                          storagelib.StorageHelpers, netlib.NetworkHelpers):
+class VirtualMachinesCase(storagelib.StorageHelpers, netlib.NetworkHelpers,
+                          testlib.MachineCase, VirtualMachinesCaseHelpers):
     def setUp(self):
         super().setUp()
 

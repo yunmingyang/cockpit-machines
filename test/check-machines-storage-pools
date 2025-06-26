@@ -723,7 +723,8 @@ class TestMachinesStoragePools(machineslib.VirtualMachinesCase):
         # create disk for lvm-pool
         m.execute(f"wipefs -a {dev}; until pvcreate {dev}; do sleep .5; done; vgcreate vol_grp1 {dev}")
         m.execute("virsh pool-define-as lvm-pool --type logical --source-name vol_grp1; virsh pool-start lvm-pool")
-        b.wait_in_text("tr[data-row-id='pool-lvm-pool-system']  .pf-v5-c-progress__status .pf-v5-c-progress__measure", "0 / 0.01 GiB")
+        b.wait_in_text("tr[data-row-id='pool-lvm-pool-system']  .pf-v6-c-progress__status .pf-v6-c-progress__measure",
+                       "0 / 0.01 GiB")
 
         StorageVolumeCreateDialog(
             self,

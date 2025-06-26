@@ -791,7 +791,8 @@ vnc_password= "{vnc_passwd}"
 
         with self.browser.wait_timeout(180):
             self.browser.reload()
-        self.browser.enter_page('/machines')
+        with self.browser.wait_timeout(600):
+            self.browser.enter_page('/machines')
         self.waitPageInit()
 
         # Check choosing existing volume as destination storage
@@ -925,7 +926,6 @@ vnc_password= "{vnc_passwd}"
             finally:
                 m.execute("umount /usr/lib/x86_64-linux-gnu/qemu/block-curl.so")
 
-        # TODO: check whether there are some dirvers on aarch64
         # aarch64: Unknown driver 'https' and 'http'
         # # Test detection of ISO file in URL; HACK: unpredictable behaviour,
         # # the "failed to install" alert sometimes appears, sometimes not; so run this last

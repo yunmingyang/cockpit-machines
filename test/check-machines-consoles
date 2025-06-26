@@ -19,6 +19,7 @@
 
 import os
 import time
+from unittest import skip
 
 import machineslib
 import testlib
@@ -64,7 +65,6 @@ fullscreen=0
         b.wait_in_text("#vm-subVmTest1-system-state", "Running")  # running or paused
         self.goToVmPage("subVmTest1")
 
-        # TODO: Check following 4 lines selectors
         # As changing to check the VNC console, selecting is needed
         b.click("#pf-v6-c-console__type-selector")
         b.wait_visible("#pf-v6-c-console__type-selector + .pf-v6-c-select__menu")
@@ -80,7 +80,6 @@ fullscreen=0
         b.click("button:contains(Expand)")
 
         # Check "More information"
-        # TODO: Check following 4 lines selectors
         # As changing to check the VNC console, selecting is needed
         b.click("#pf-v6-c-console__type-selector")
         b.wait_visible("#pf-v6-c-console__type-selector + .pf-v6-c-select__menu")
@@ -249,6 +248,7 @@ fullscreen=0
         self.allow_browser_errors("Disconnection timed out.",
                                   "Failed when connecting: Connection closed")
 
+    @skip("skip as no enough resources")
     @testlib.skipBeiboot("multi-host config not supported in beiboot scenario")
     def testExternalConsoleMultiHost(self):
         b = self.browser

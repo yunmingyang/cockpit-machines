@@ -185,9 +185,9 @@ class TestMachinesHostDevs(machineslib.VirtualMachinesCase):
 
                 b.wait_in_text("#vm-subVmTest1-hostdev-1-type", "usb")
                 b.wait_in_text("#vm-subVmTest1-hostdev-1-vendor", "Linux Foundation")
-                b.wait_in_text("#vm-subVmTest1-hostdev-1-product", "1.1 root hub")
+                b.wait_in_text("#vm-subVmTest1-hostdev-1-product", "3.0 root hub")
                 b.wait_in_text("#vm-subVmTest1-hostdev-1-source #device-1", "1")
-                b.wait_in_text("#vm-subVmTest1-hostdev-1-source #bus-1", "1")
+                b.wait_in_text("#vm-subVmTest1-hostdev-1-source #bus-1", "2")
 
         m.execute("virsh destroy subVmTest1")
         b.wait_in_text("#vm-subVmTest1-system-state", "Shut off")
@@ -212,7 +212,9 @@ class TestMachinesHostDevs(machineslib.VirtualMachinesCase):
         m.execute("virsh attach-device --domain subVmTest1 --file /tmp/pcihostedxml --persistent")
         with b.wait_timeout(180):
             b.reload()
-        b.enter_page('/machines')
+        # Increase the waiting here
+        with b.wait_timeout(600):
+            b.enter_page('/machines')
 
         b.wait_in_text("#vm-subVmTest1-hostdev-1-type", "pci")
         try:

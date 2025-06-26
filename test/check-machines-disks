@@ -71,7 +71,7 @@ class TestMachinesDisks(machineslib.VirtualMachinesCase):
             cmd += " --persistent"
         self.machine.execute(cmd)
 
-    # TODO: find IDE related steps, and move "aarch64: unsupported configuration: IDE controllers are unsupported for this QEMU binary or machine type" there
+    # IDE -> "aarch64: unsupported configuration: IDE controllers are unsupported for this QEMU binary or machine type"
     def testDiskEdit(self):
         b = self.browser
         m = self.machine

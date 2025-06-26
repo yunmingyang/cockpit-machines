@@ -464,9 +464,7 @@ class TestMachinesSnapshots(machineslib.VirtualMachinesCase):
         b.wait_in_text(".pf-v6-c-modal-box .pf-v6-c-modal-box__header .pf-v6-c-modal-box__title",
                        "Revert to snapshot snapshotB")
         b.click('.pf-v6-c-modal-box__footer button:contains("Revert")')
-        # Un-annotate following two lines if the case fail
-        # b.click("#vm-subVmTest1-snapshot-0-revert-snapshot-snapshotB-modal button[aria-label=\"Close\"]")
-        # b.wait_not_present("#vm-subVmTest1-snapshot-0-revert-snapshot-snapshotB-modal")
+        b.wait_not_present("#vm-subVmTest1-snapshot-0-revert-snapshot-snapshotB-modal")
 
         # aarch64: qemu-kvm: This is a disk-only snapshot. Revert to it offline using qemu-img
         # b.wait_not_present("#vm-subVmTest1-snapshot-1-current")

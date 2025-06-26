@@ -67,7 +67,7 @@ class TestMachinesLifecycle(machineslib.VirtualMachinesCase):
 
         # Check NON-PRIVILEGED user won't see any VMs even though they are in wheel group
         self._testBasic(user, superuser=False, expect_empty_list=True)
-        self.machine.execute("virsh destroy subVmTest1; virsh undefine subVmTest1")
+        self.machine.execute("virsh destroy subVmTest1; virsh undefine --nvram subVmTest1")
         # Check wheel group PRIVILEGED user will see VMs and can do operations on them
         self._testBasic(user)
 

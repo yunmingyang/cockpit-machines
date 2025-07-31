@@ -31,6 +31,7 @@ import AddHostDev from "./hostDevAdd.jsx";
 import { domainGet, domainDetachHostDevice } from '../../../libvirtApi/domain.js';
 import { nodeDeviceGetAll } from '../../../libvirtApi/nodeDevice.js';
 import { DeleteResourceButton } from '../../common/deleteResource.jsx';
+import store from '../../../store.js';
 
 const _ = cockpit.gettext;
 
@@ -147,10 +148,32 @@ export const VmHostDevActions = ({ vm } : { vm: VM }) => {
         Dialogs.show(<AddHostDev idPrefix={idPrefix} vm={vm} />);
     }
 
+    function test() {
+        store.dispatch({
+            type: 'UPDATE_ADD_NODE_DEVICE',
+            payload: {
+                nodedev: {
+                    connectionName: 'system',
+                    name: 'usb_f_f_f_f',
+                    path: '0xffff',
+                    capability: {
+                        type: 'usb_device'
+                    },
+                    parent: "0xffff"
+                }
+            }
+        })
+    }
+
     return (
-        <Button id={`${idPrefix}-add`} variant='secondary' onClick={open}>
-            {_("Add host device")}
-        </Button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+            <Button id={`${idPrefix}-add`} variant='secondary' onClick={open}>
+                {_("Add host device")}
+            </Button>
+            <Button id={`${idPrefix}-add-test`} variant='secondary' onClick={test}>
+                {_("Test")}
+            </Button>
+        </div>
     );
 };
 

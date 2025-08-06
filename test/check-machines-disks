@@ -165,7 +165,6 @@ class TestMachinesDisks(machineslib.VirtualMachinesCase):
         b.wait_not_present("#vm-subVmTest1-needs-shutdown")
 
         # Set "shareable" attribute externally
-        testlib.sit()
         m.execute("virt-xml --edit target=vde --disk shareable=on subVmTest1")
         b.wait_in_text("#vm-subVmTest1-disks-vde-access", "Concurrently writeable")
 

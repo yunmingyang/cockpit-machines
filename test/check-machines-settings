@@ -733,11 +733,11 @@ class TestMachinesSettings(machineslib.VirtualMachinesCase):
             m.execute("virsh start subVmTest1")
 
             # Test hotplug will fail and warning is shown
+            # The "Save" button be still there if opening the dialog too quickly
+            time.sleep(2)
             openWatchDogDialog()
             b.wait_not_present("#watchdog-dialog-apply-next-boot")
             b.click("#reset")
-            # Sine it seems that the hotplugging is still enabled if no this sleep
-            time.sleep(2)
             b.click("#watchdog-dialog-apply")
             b.wait_in_text("#vm-subVmTest1-watchdog-modal .pf-m-warning", "Could not dynamically add watchdog")
             b.wait_visible("#watchdog-dialog-apply[aria-disabled=true]")

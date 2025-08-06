@@ -19,6 +19,7 @@
 
 import os
 import time
+from unittest import skip
 import xml.etree.ElementTree as ET
 
 import machineslib
@@ -235,6 +236,7 @@ fullscreen=0
         self.allow_browser_errors("Disconnection timed out.",
                                   "Failed when connecting: Connection closed")
 
+    @skip("no enough resources")
     @testlib.skipBeiboot("multi-host config not supported in beiboot scenario")
     def testMultiHostExternalConsole(self):
         b = self.browser

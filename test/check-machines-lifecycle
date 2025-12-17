@@ -375,6 +375,7 @@ class TestMachinesLifecycle(machineslib.VirtualMachinesCase):
 
         b.wait_text(".pf-v6-c-modal-box__title-text", "Create a clone VM based on subVmTest1")
         b.click("footer button.pf-m-primary")
+        time.sleep(10)
         b.wait_not_present(".pf-v6-c-modal-box")
         self.waitVmRow("subVmTest1-clone", connectionName=connectionName)
 

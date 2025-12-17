@@ -1913,6 +1913,7 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
             else:
                 b.wait_in_text(f"#vm-{name}-disks .pf-v6-c-empty-state", "No disks")
                 b.click(f"#vm-{name}-disks-adddisk")
+                time.sleep(2)
                 b.click(f"#vm-{name}-disks-adddisk-dialog-cancel")
 
             if dialog.sourceType == 'pxe' and "network" not in dialog.location:

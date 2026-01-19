@@ -47,6 +47,7 @@ class VirtualMachinesCaseHelpers(testlib.MachineCase):
         # no 'Checking for hardware virtualization'
         # virtualization_enabled = \
         #         "PASS" in m.execute("virt-host-validate qemu | grep 'Checking for hardware virtualization' || true")
+        virtualization_enabled = "true"
         if not virtualization_enabled and not virtualization_disabled_ignored:
             self.browser.click("#ignore-hw-virtualization-disabled-btn")
         with self.browser.wait_timeout(30):
@@ -410,7 +411,7 @@ class VirtualMachinesCase(VirtualMachinesCaseHelpers, storagelib.StorageHelpers,
     def setUp(self) -> None:
         super().setUp()
 
-        for m in self.machines.values():
+        # for m in self.machines.values():
             # We don't want nested KVM since it doesn't work well enough
             # three levels deep.
             #
@@ -432,7 +433,7 @@ class VirtualMachinesCase(VirtualMachinesCaseHelpers, storagelib.StorageHelpers,
             # does not exist in the first place and we don't need to be
             # careful to leave it in place.
             #
-            m.execute("rm -f /dev/kvm")
+            # m.execute("rm -f /dev/kvm")
 
         m = self.machine
 

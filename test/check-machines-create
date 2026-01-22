@@ -138,7 +138,7 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
         # The dialog should auto-adjust it to match the OS'es total memory
         runner.checkDialogFormValidationTest(TestMachinesCreate.VmDialog(self, sourceType='file',
                                                                          location=config.NOVELL_MOCKUP_ISO_PATH,
-                                                                         memory_size=100000, memory_size_unit='MiB',
+                                                                         memory_size=10000000, memory_size_unit='MiB',
                                                                          storage_pool=NO_STORAGE,
                                                                          create_and_run=False),
                                              {"memory": "available on host"})
@@ -1360,7 +1360,7 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
             # well.  (On some OSes the created VM crashes in the
             # kernel, on others, the BIOS can't find a bootable
             # device. Maybe that's the difference.)
-            if self.create_and_run and self.machine.image.startswith(('opensuse-tumbleweed', 'rhel-10')):
+            if self.create_and_run and self.machine.image.startswith(('opensuse-tumbleweed')):
                 self.machine.execute(f"while {virt_install_cmd}; do sleep 1; done", timeout=300)
 
         def fill(self):

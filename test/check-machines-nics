@@ -3,6 +3,7 @@
 #
 # Copyright (C) 2021 Red Hat, Inc.
 import json
+import time
 
 import machineslib
 import testlib
@@ -71,6 +72,7 @@ class TestMachinesNICs(machineslib.VirtualMachinesCase):
         m.execute("virsh attach-interface --domain subVmTest1 --type network --source default --target vnet1 "
                   "--model virtio --mac 52:54:00:4b:73:5f --config --live", timeout=300)
 
+        time.sleep(2)
         self.expandNicRow(1)
         b.wait_in_text("#vm-subVmTest1-network-1-mac", "52:54:00:4b:73:5f")
         b.wait_in_text("#vm-subVmTest1-network-1-type", "network")
@@ -208,6 +210,9 @@ class TestMachinesNICs(machineslib.VirtualMachinesCase):
         b.wait_in_text("#vm-subVmTest1-system-state", "Running")
         self.goToVmPage("subVmTest1")
         b.wait_visible("#vm-subVmTest1-overview")
+
+        # Expand the nic row
+        self.expandNicRow(1)
 
         # Plug and unplug NICs
         def plugAndUnplugNICs():

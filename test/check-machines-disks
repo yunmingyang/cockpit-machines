@@ -247,10 +247,12 @@ class TestMachinesDisks(machineslib.VirtualMachinesCase):
         self.goToMainPage()
         self.createVm("subVmTest2", running=False, os="unknown")
         self.goToVmPage("subVmTest2")
-        self.waitDisks(["hda"], vm="subVmTest2")
+        # self.waitDisks(["hda"], vm="subVmTest2")
+        self.waitDisks(["vda"], vm="subVmTest2")
 
         # self.expandDiskRow("hda")
         # b.wait_in_text("#vm-subVmTest2-disks-hda-bus", "ide")
+        self.expandDiskRow("vda")
         b.wait_in_text("#vm-subVmTest2-disks-vda-bus", "virtio")
 
         openDialog("vda", name="subVmTest2")
@@ -260,11 +262,11 @@ class TestMachinesDisks(machineslib.VirtualMachinesCase):
         b.select_from_dropdown("#vm-subVmTest2-disks-vda-edit-bus-type", "scsi")
         save("vda", name="subVmTest2")
 
-        # self.expandDiskRow("sda")
+        self.expandDiskRow("sda")
         # b.wait_in_text("#vm-subVmTest2-disks-sda-bus", "sata")
         b.wait_in_text("#vm-subVmTest2-disks-sda-bus", "scsi")
         openDialog("sda", name="subVmTest2")
-        b.wait_not_present("#vm-subVmTest2-disks-hda-edit-bus-type option[value=ide]")
+        b.wait_not_present("#vm-subVmTest2-disks-sda-edit-bus-type option[value=ide]")
 
     def testDisks(self):
         b = self.browser
@@ -1610,7 +1612,8 @@ class TestMachinesDisks(machineslib.VirtualMachinesCase):
         b.enter_page('/machines')
         self.waitPageInit()
         # self.waitDisks(["sda", "sdb", "sdc", "vda"])
-        b.wait_visible("#vm-subVmTest1-disks-vda-device")
+        self.waitDisks(["vda"])
+        # b.wait_visible("#vm-subVmTest1-disks-vda-device")
 
         def removeDiskAndChecks(target, path, removeFile=False, removeFileFail=False, removeFileNotPresent=False):
             self.dropdownAction(f"#vm-subVmTest1-disks-{target}-action-kebab",

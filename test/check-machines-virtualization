@@ -28,26 +28,28 @@ def get_systemd_services(libvirt_servicename):
 @testlib.nondestructive
 class TestMachinesVirtualization(machineslib.VirtualMachinesCase):
 
-    def testVirtualizationDisabled(self):
-        b = self.browser
-        m = self.machine
+    # aarch64: no "QEMU: Checking for hardware virtualization" for virt-host-validate,
+    # aarch64: thus, skip this case
+    # def testVirtualizationDisabled(self):
+    #     b = self.browser
+    #     m = self.machine
 
-        m.execute("touch /tmp/cpuinfo.txt && mount --bind /tmp/cpuinfo.txt /proc/cpuinfo")
-        self.addCleanup(m.execute, "umount /proc/cpuinfo || true")
+    #     m.execute("touch /tmp/cpuinfo.txt && mount --bind /tmp/cpuinfo.txt /proc/cpuinfo")
+    #     self.addCleanup(m.execute, "umount /proc/cpuinfo || true")
 
-        self.login_and_go("/machines")
+    #     self.login_and_go("/machines")
 
-        b.wait_in_text("div.pf-v6-c-empty-state", "Hardware virtualization is disabled")
+    #     b.wait_in_text("div.pf-v6-c-empty-state", "Hardware virtualization is disabled")
 
-        b.assert_pixels(".pf-v6-c-empty-state", "virtualization-disabled-warning")
+    #     b.assert_pixels(".pf-v6-c-empty-state", "virtualization-disabled-warning")
 
-        b.click("#ignore-hw-virtualization-disabled-btn")
+    #     b.click("#ignore-hw-virtualization-disabled-btn")
 
-        b.wait_visible("#card-pf-storage-pools")
-        b.wait_visible("#card-pf-networks")
-        b.wait_visible("#virtual-machines-listing")
+    #     b.wait_visible("#card-pf-storage-pools")
+    #     b.wait_visible("#card-pf-networks")
+    #     b.wait_visible("#virtual-machines-listing")
 
-        b.wait_text(".pf-v6-c-page .pf-v6-c-card__title", "Virtual machines")
+    #     b.wait_text(".pf-v6-c-page .pf-v6-c-card__title", "Virtual machines")
 
     def testLibvirt(self):
         b = self.browser

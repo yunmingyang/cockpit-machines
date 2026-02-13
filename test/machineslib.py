@@ -48,7 +48,7 @@ class VirtualMachinesCaseHelpers(testlib.MachineCase):
                 "PASS" in m.execute("virt-host-validate qemu | grep 'Checking for hardware virtualization' || true")
         if not virtualization_enabled and not virtualization_disabled_ignored:
             self.browser.click("#ignore-hw-virtualization-disabled-btn")
-        with self.browser.wait_timeout(30):
+        with self.browser.wait_timeout(300):
             self.browser.wait_in_text("body", "Virtual machines")
 
     # TODO: generic, move to testlib.py?

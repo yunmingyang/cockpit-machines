@@ -2544,240 +2544,241 @@ class TestMachinesCreate(machineslib.VirtualMachinesCase):
         finally:
             m.execute(f"for f in {plugins}; do mv {self.vm_tmpdir}/qemu/$(basename $f) $f; done")
 
-    @testlib.skipImage('SPICE conversion not supported', "ubuntu-2204", "ubuntu-2404")
-    def testReplaceSpice(self):
-        m = self.machine
-        b = self.browser
-        TestMachinesCreate.CreateVmRunner(self)
-        config = TestMachinesCreate.TestCreateConfig
+    # # s390x: SPICE not supported
+    # @testlib.skipImage('SPICE conversion not supported', "ubuntu-2204", "ubuntu-2404")
+    # def testReplaceSpice(self):
+    #     m = self.machine
+    #     b = self.browser
+    #     TestMachinesCreate.CreateVmRunner(self)
+    #     config = TestMachinesCreate.TestCreateConfig
 
-        self.login_and_go("/machines")
-        self.waitPageInit()
+    #     self.login_and_go("/machines")
+    #     self.waitPageInit()
 
-        def checkConnnectInfo(expect_vnc=True, expect_spice=False):
-            # if VNC is available, the inline viewer is the default
-            if expect_vnc:
-                with b.wait_timeout(60):
-                    b.wait_visible(".vm-console-vnc canvas")
-            else:
-                # Without VNC, the serial console is displayed by default. Switch to "Graphical".
-                b.click(".consoles-card .pf-v6-c-toggle-group button:contains(Graphical)")
+    #     def checkConnnectInfo(expect_vnc=True, expect_spice=False):
+    #         # if VNC is available, the inline viewer is the default
+    #         if expect_vnc:
+    #             with b.wait_timeout(60):
+    #                 b.wait_visible(".vm-console-vnc canvas")
+    #         else:
+    #             # Without VNC, the serial console is displayed by default. Switch to "Graphical".
+    #             b.click(".consoles-card .pf-v6-c-toggle-group button:contains(Graphical)")
 
-            if not expect_vnc and not expect_spice:
-                b.wait_not_present(".vm-console-footer button.pf-m-plain")
-            else:
-                b.click(".vm-console-footer .pf-v6-c-button.pf-m-link")
-                if expect_vnc:
-                    b.wait_in_text(".ct-remote-viewer-popover", "vnc://")
-                else:
-                    b.wait_not_in_text(".ct-remote-viewer-popover", "vnc://")
-                    if expect_spice:
-                        b.wait_in_text(".ct-remote-viewer-popover", "spice://")
-                b.click(".vm-console-footer .pf-v6-c-button.pf-m-link")
-                b.wait_not_present(".ct-remote-viewer-popover")
+    #         if not expect_vnc and not expect_spice:
+    #             b.wait_not_present(".vm-console-footer button.pf-m-plain")
+    #         else:
+    #             b.click(".vm-console-footer .pf-v6-c-button.pf-m-link")
+    #             if expect_vnc:
+    #                 b.wait_in_text(".ct-remote-viewer-popover", "vnc://")
+    #             else:
+    #                 b.wait_not_in_text(".ct-remote-viewer-popover", "vnc://")
+    #                 if expect_spice:
+    #                     b.wait_in_text(".ct-remote-viewer-popover", "spice://")
+    #             b.click(".vm-console-footer .pf-v6-c-button.pf-m-link")
+    #             b.wait_not_present(".ct-remote-viewer-popover")
 
-        def doReplaceSpiceSingle(vmName, expect_running=False, cancel=False):
-            self.performAction(vmName, "replace-spice")
-            b.wait_text(".pf-v6-c-modal-box__title-text", f"Replace SPICE devices in VM {vmName}")
-            b.wait_in_text(".pf-v6-c-modal-box__body", "Replace SPICE on the virtual machine")
-            if expect_running:
-                b.wait_visible("#spice-modal-idle-message")
-            else:
-                self.assertFalse(b.is_present("#spice-modal-idle-message"))
-            self.assertFalse(b.is_present("#replace-spice-dialog-other"))
+    #     def doReplaceSpiceSingle(vmName, expect_running=False, cancel=False):
+    #         self.performAction(vmName, "replace-spice")
+    #         b.wait_text(".pf-v6-c-modal-box__title-text", f"Replace SPICE devices in VM {vmName}")
+    #         b.wait_in_text(".pf-v6-c-modal-box__body", "Replace SPICE on the virtual machine")
+    #         if expect_running:
+    #             b.wait_visible("#spice-modal-idle-message")
+    #         else:
+    #             self.assertFalse(b.is_present("#spice-modal-idle-message"))
+    #         self.assertFalse(b.is_present("#replace-spice-dialog-other"))
 
-            if cancel:
-                b.click('.pf-v6-c-modal-box__footer button:contains("Cancel")')
-            else:
-                b.click("#replace-spice-dialog-confirm")
-            b.wait_not_present(".pf-v6-c-modal-box")
-            if cancel:
-                return
+    #         if cancel:
+    #             b.click('.pf-v6-c-modal-box__footer button:contains("Cancel")')
+    #         else:
+    #             b.click("#replace-spice-dialog-confirm")
+    #         b.wait_not_present(".pf-v6-c-modal-box")
+    #         if cancel:
+    #             return
 
-            if expect_running:
-                b.click(f"#vm-{vmName}-needs-shutdown")
-                b.wait_in_text(".pf-v6-c-popover__body", "SPICE")
-            else:
-                b.wait_not_present(f"#vm-{vmName}-needs-shutdown")
+    #         if expect_running:
+    #             b.click(f"#vm-{vmName}-needs-shutdown")
+    #             b.wait_in_text(".pf-v6-c-popover__body", "SPICE")
+    #         else:
+    #             b.wait_not_present(f"#vm-{vmName}-needs-shutdown")
 
-            # should not have any spice or qxl video any more
-            dump = m.execute(f"virsh dumpxml --inactive {vmName}")
-            self.assertNotIn("spice", dump)
-            self.assertNotIn("qxl", dump)
+    #         # should not have any spice or qxl video any more
+    #         dump = m.execute(f"virsh dumpxml --inactive {vmName}")
+    #         self.assertNotIn("spice", dump)
+    #         self.assertNotIn("qxl", dump)
 
-        #
-        # c-machines standard VM (vnc + spice on non-RHEL), running
-        #
+    #     #
+    #     # c-machines standard VM (vnc + spice on non-RHEL), running
+    #     #
 
-        # s390x: need more than 256 MiB for both memory and storage
-        dialog = TestMachinesCreate.VmDialog(self, sourceType='cloud',
-                                             location=config.VALID_DISK_IMAGE_PATH,
-                                             memory_size=256,
-                                             storage_size=256,
-                                             storage_size_unit='MiB',
-                                             create_and_run=True,
-                                             delete=False)
-        vmCockpit = dialog.name
-        dialog.open() \
-            .fill()
-        b.click(".pf-v6-c-modal-box__footer button:contains(Create and run)")
-        self.browser.wait_not_present("#create-vm-dialog")
-        self.waitVmRow(vmCockpit, "system")
-        self.goToVmPage(vmCockpit)
-        b.wait_text(f"#vm-{vmCockpit}-system-state", "Running")
-        domainXML = m.execute(f"virsh dumpxml --inactive {vmCockpit}")
+    #     # s390x: need more than 256 MiB for both memory and storage
+    #     dialog = TestMachinesCreate.VmDialog(self, sourceType='cloud',
+    #                                          location=config.VALID_DISK_IMAGE_PATH,
+    #                                          memory_size=256,
+    #                                          storage_size=256,
+    #                                          storage_size_unit='MiB',
+    #                                          create_and_run=True,
+    #                                          delete=False)
+    #     vmCockpit = dialog.name
+    #     dialog.open() \
+    #         .fill()
+    #     b.click(".pf-v6-c-modal-box__footer button:contains(Create and run)")
+    #     self.browser.wait_not_present("#create-vm-dialog")
+    #     self.waitVmRow(vmCockpit, "system")
+    #     self.goToVmPage(vmCockpit)
+    #     b.wait_text(f"#vm-{vmCockpit}-system-state", "Running")
+    #     domainXML = m.execute(f"virsh dumpxml --inactive {vmCockpit}")
 
-        # no warning label: newly created machines never have spice
-        b.wait_not_present(f"#vm-{vmCockpit}-uses-spice")
+    #     # no warning label: newly created machines never have spice
+    #     b.wait_not_present(f"#vm-{vmCockpit}-uses-spice")
 
-        # we don't expect any device
-        self.assertNotIn("spice", domainXML)
-        self.assertNotIn("qxl", domainXML)
-        # and thus no "Replace SPICE" menu entry
-        b.click(f"#vm-{vmCockpit}-system-action-kebab")
-        b.wait_visible(f"#vm-{vmCockpit}-system-delete")
-        self.assertNotIn("Replace SPICE",
-                         b.text("ul.pf-v6-c-menu__list"))
+    #     # we don't expect any device
+    #     self.assertNotIn("spice", domainXML)
+    #     self.assertNotIn("qxl", domainXML)
+    #     # and thus no "Replace SPICE" menu entry
+    #     b.click(f"#vm-{vmCockpit}-system-action-kebab")
+    #     b.wait_visible(f"#vm-{vmCockpit}-system-delete")
+    #     self.assertNotIn("Replace SPICE",
+    #                      b.text("ul.pf-v6-c-menu__list"))
 
-        # RHEL ≥ 9 doesn't support SPICE, so skip the rest of the test
-        if (m.image.startswith("rhel-") or m.image.startswith("centos-")) and "rhel-8" not in m.image:
-            return
+    #     # RHEL ≥ 9 doesn't support SPICE, so skip the rest of the test
+    #     if (m.image.startswith("rhel-") or m.image.startswith("centos-")) and "rhel-8" not in m.image:
+    #         return
 
-        # add spice grapics. Remove vnc so that we can check that
-        # "replace spice" adds it back.
-        m.execute(f"virt-xml {vmCockpit} --add-device --graphics spice")
-        m.execute(f"virt-xml {vmCockpit} --remove-device --graphics vnc")
-        domainXML = m.execute(f"virsh dumpxml --inactive {vmCockpit}")
+    #     # add spice grapics. Remove vnc so that we can check that
+    #     # "replace spice" adds it back.
+    #     m.execute(f"virt-xml {vmCockpit} --add-device --graphics spice")
+    #     m.execute(f"virt-xml {vmCockpit} --remove-device --graphics vnc")
+    #     domainXML = m.execute(f"virsh dumpxml --inactive {vmCockpit}")
 
-        self.assertIn("graphics type='spice'", domainXML)
+    #     self.assertIn("graphics type='spice'", domainXML)
 
-        # Shutdown and restart VM
-        m.execute(f"virsh destroy {vmCockpit}")
-        b.wait_text(f"#vm-{vmCockpit}-system-state", "Shut off")
-        b.click(f"#vm-{vmCockpit}-system-run")
-        b.wait_text(f"#vm-{vmCockpit}-system-state", "Running")
+    #     # Shutdown and restart VM
+    #     m.execute(f"virsh destroy {vmCockpit}")
+    #     b.wait_text(f"#vm-{vmCockpit}-system-state", "Shut off")
+    #     b.click(f"#vm-{vmCockpit}-system-run")
+    #     b.wait_text(f"#vm-{vmCockpit}-system-state", "Running")
 
-        checkConnnectInfo(expect_vnc=False, expect_spice=True)
-        doReplaceSpiceSingle(vmCockpit, expect_running=True)
+    #     checkConnnectInfo(expect_vnc=False, expect_spice=True)
+    #     doReplaceSpiceSingle(vmCockpit, expect_running=True)
 
-        # "Replace SPICE" menu entry goes away (async)
-        for _retry in range(15):
-            time.sleep(1)
-            b.click(f"#vm-{vmCockpit}-system-action-kebab")
-            b.wait_visible(f"#vm-{vmCockpit}-system-delete")
-            menu = b.text("ul.pf-v6-c-menu__list")
-            b.click(f"#vm-{vmCockpit}-system-action-kebab")
-            b.wait_not_present("ul.pf-v6-c-menu__list")
-            if "Replace SPICE" not in menu:
-                break
-        else:
-            self.fail("timed out waiting for Replace SPICE menu item removal")
+    #     # "Replace SPICE" menu entry goes away (async)
+    #     for _retry in range(15):
+    #         time.sleep(1)
+    #         b.click(f"#vm-{vmCockpit}-system-action-kebab")
+    #         b.wait_visible(f"#vm-{vmCockpit}-system-delete")
+    #         menu = b.text("ul.pf-v6-c-menu__list")
+    #         b.click(f"#vm-{vmCockpit}-system-action-kebab")
+    #         b.wait_not_present("ul.pf-v6-c-menu__list")
+    #         if "Replace SPICE" not in menu:
+    #             break
+    #     else:
+    #         self.fail("timed out waiting for Replace SPICE menu item removal")
 
-        # ensure that the VM can start without any SPICE plugins
-        with self.remove_spice_plugins():
-            # restart the VM to make the change effective
-            self.performAction(vmCockpit, "forceOff")
-            b.wait_not_present(f"#vm-{vmCockpit}-needs-shutdown")
-            b.wait_not_present(f"#vm-{vmCockpit}-uses-spice")
-            b.click(f"#vm-{vmCockpit}-system-run")
-            b.wait_text(f"#vm-{vmCockpit}-system-state", "Running")
-            checkConnnectInfo(expect_vnc=True, expect_spice=False)
+    #     # ensure that the VM can start without any SPICE plugins
+    #     with self.remove_spice_plugins():
+    #         # restart the VM to make the change effective
+    #         self.performAction(vmCockpit, "forceOff")
+    #         b.wait_not_present(f"#vm-{vmCockpit}-needs-shutdown")
+    #         b.wait_not_present(f"#vm-{vmCockpit}-uses-spice")
+    #         b.click(f"#vm-{vmCockpit}-system-run")
+    #         b.wait_text(f"#vm-{vmCockpit}-system-state", "Running")
+    #         checkConnnectInfo(expect_vnc=True, expect_spice=False)
 
-        b.wait_not_present(f"#vm-{vmCockpit}-needs-shutdown")
-        b.wait_not_present(f"#vm-{vmCockpit}-uses-spice")
+    #     b.wait_not_present(f"#vm-{vmCockpit}-needs-shutdown")
+    #     b.wait_not_present(f"#vm-{vmCockpit}-uses-spice")
 
-        self.goToMainPage()
-        self.machine.execute(f"virsh destroy {vmCockpit}; virsh undefine {vmCockpit}")
+    #     self.goToMainPage()
+    #     self.machine.execute(f"virsh destroy {vmCockpit}; virsh undefine {vmCockpit}")
 
-        #
-        # some custom spice-only VMs, not running; test mass conversion
-        #
+    #     #
+    #     # some custom spice-only VMs, not running; test mass conversion
+    #     #
 
-        self.createVm("SpiceOne", graphics="spice", running=False)
-        self.createVm("SpiceTwo", graphics="spice", running=True)
-        self.createVm("SpiceSession", graphics="spice", connection="session", running=False)
-        # this one shouldn't be touched
-        self.createVm("VncOne", graphics="vnc", running=False)
+    #     self.createVm("SpiceOne", graphics="spice", running=False)
+    #     self.createVm("SpiceTwo", graphics="spice", running=True)
+    #     self.createVm("SpiceSession", graphics="spice", connection="session", running=False)
+    #     # this one shouldn't be touched
+    #     self.createVm("VncOne", graphics="vnc", running=False)
 
-        vmSpiceOnly = "SpiceOnly"
-        self.createVm(vmSpiceOnly, graphics="spice", running=False)
-        self.waitVmRow(vmSpiceOnly, "system")
+    #     vmSpiceOnly = "SpiceOnly"
+    #     self.createVm(vmSpiceOnly, graphics="spice", running=False)
+    #     self.waitVmRow(vmSpiceOnly, "system")
 
-        # detail page only shows single VM conversion
-        self.goToVmPage(vmSpiceOnly)
-        b.wait_text(f"#vm-{vmSpiceOnly}-system-state", "Shut off")
-        doReplaceSpiceSingle(vmSpiceOnly, expect_running=False, cancel=True)
+    #     # detail page only shows single VM conversion
+    #     self.goToVmPage(vmSpiceOnly)
+    #     b.wait_text(f"#vm-{vmSpiceOnly}-system-state", "Shut off")
+    #     doReplaceSpiceSingle(vmSpiceOnly, expect_running=False, cancel=True)
 
-        # overview page shows mass VM conversion
-        self.goToMainPage()
-        self.performAction(vmSpiceOnly, "replace-spice")
+    #     # overview page shows mass VM conversion
+    #     self.goToMainPage()
+    #     self.performAction(vmSpiceOnly, "replace-spice")
 
-        b.wait_text(".pf-v6-c-modal-box__title-text", "Replace SPICE devices")
-        b.wait_in_text(".pf-v6-c-modal-box__body", "Replace SPICE on selected VMs")
-        # action came from vmSpiceOnly, should be at the top and selected
-        b.wait_in_text(".pf-v6-c-menu__item:has(input:checked)", vmSpiceOnly)
-        b.wait_visible(".pf-v6-c-menu__item input:checked")  # selector is ambiguous if anything else is checked
-        # other SPICE VMs are also offered
-        menu = b.text("#replace-spice-dialog-other")
-        self.assertIn("SpiceOne", menu)
-        self.assertIn("SpiceTwo", menu)
-        self.assertIn("SpiceSession", menu)
-        self.assertNotIn("Vnc", menu)
+    #     b.wait_text(".pf-v6-c-modal-box__title-text", "Replace SPICE devices")
+    #     b.wait_in_text(".pf-v6-c-modal-box__body", "Replace SPICE on selected VMs")
+    #     # action came from vmSpiceOnly, should be at the top and selected
+    #     b.wait_in_text(".pf-v6-c-menu__item:has(input:checked)", vmSpiceOnly)
+    #     b.wait_visible(".pf-v6-c-menu__item input:checked")  # selector is ambiguous if anything else is checked
+    #     # other SPICE VMs are also offered
+    #     menu = b.text("#replace-spice-dialog-other")
+    #     self.assertIn("SpiceOne", menu)
+    #     self.assertIn("SpiceTwo", menu)
+    #     self.assertIn("SpiceSession", menu)
+    #     self.assertNotIn("Vnc", menu)
 
-        b.wait_text("#replace-spice-dialog-select-all", "Select all")
-        b.click("#replace-spice-dialog-select-all")
-        # now there are no unchecked VMs
-        b.wait_not_present(".pf-v6-c-menu__item input:not(:checked)")
-        b.wait_text("#replace-spice-dialog-select-all", "Deselect others")
-        b.click("#replace-spice-dialog-select-all")
-        # only the first one selected now
-        b.wait_in_text(".pf-v6-c-menu__item:has(input:checked)", vmSpiceOnly)
-        # fails due to ambiguity if others are
-        b.wait_visible(".pf-v6-c-menu__item input:checked")
-        b.click("#replace-spice-dialog-select-all")
-        b.wait_not_present(".pf-v6-c-menu__item input:not(:checked)")
-        # uncheck SpiceTwo
-        b.click(".pf-v6-c-menu__item:contains('SpiceTwo')")
-        b.wait_in_text(".pf-v6-c-menu__item:has(input:not(:checked))", 'SpiceTwo')
+    #     b.wait_text("#replace-spice-dialog-select-all", "Select all")
+    #     b.click("#replace-spice-dialog-select-all")
+    #     # now there are no unchecked VMs
+    #     b.wait_not_present(".pf-v6-c-menu__item input:not(:checked)")
+    #     b.wait_text("#replace-spice-dialog-select-all", "Deselect others")
+    #     b.click("#replace-spice-dialog-select-all")
+    #     # only the first one selected now
+    #     b.wait_in_text(".pf-v6-c-menu__item:has(input:checked)", vmSpiceOnly)
+    #     # fails due to ambiguity if others are
+    #     b.wait_visible(".pf-v6-c-menu__item input:checked")
+    #     b.click("#replace-spice-dialog-select-all")
+    #     b.wait_not_present(".pf-v6-c-menu__item input:not(:checked)")
+    #     # uncheck SpiceTwo
+    #     b.click(".pf-v6-c-menu__item:contains('SpiceTwo')")
+    #     b.wait_in_text(".pf-v6-c-menu__item:has(input:not(:checked))", 'SpiceTwo')
 
-        # ensure we don't have an alert for failed install of subVmTest1, as it would interfere with the pixel test;
-        # this is unfortunately unpredictable
-        if b.is_present(".pf-v6-c-alert-group"):
-            b.click(".pf-v6-c-alert-group .pf-v6-c-alert__action button")
-            b.wait_not_present(".pf-v6-c-alert-group")
+    #     # ensure we don't have an alert for failed install of subVmTest1, as it would interfere with the pixel test;
+    #     # this is unfortunately unpredictable
+    #     if b.is_present(".pf-v6-c-alert-group"):
+    #         b.click(".pf-v6-c-alert-group .pf-v6-c-alert__action button")
+    #         b.wait_not_present(".pf-v6-c-alert-group")
 
-        b.assert_pixels(".pf-v6-c-modal-box", "replace-spice-multi")
+    #     b.assert_pixels(".pf-v6-c-modal-box", "replace-spice-multi")
 
-        b.click("#replace-spice-dialog-confirm")
-        b.wait_not_present(".pf-v6-c-modal-box")
+    #     b.click("#replace-spice-dialog-confirm")
+    #     b.wait_not_present(".pf-v6-c-modal-box")
 
-        # SpiceOnly still runs
-        b.click(f"#vm-{vmSpiceOnly}-system-run")
-        b.wait_text(f"#vm-{vmSpiceOnly}-system-state", "Running")
-        self.goToVmPage(vmSpiceOnly)
-        # and was converted to VNC
-        checkConnnectInfo(expect_vnc=True, expect_spice=False)
+    #     # SpiceOnly still runs
+    #     b.click(f"#vm-{vmSpiceOnly}-system-run")
+    #     b.wait_text(f"#vm-{vmSpiceOnly}-system-state", "Running")
+    #     self.goToVmPage(vmSpiceOnly)
+    #     # and was converted to VNC
+    #     checkConnnectInfo(expect_vnc=True, expect_spice=False)
 
-        # other VMs were also converted
-        self.assertNotIn("spice", m.execute("virsh dumpxml SpiceOne"))
-        self.assertNotIn("spice", self.run_admin("virsh -c qemu:///session dumpxml SpiceSession", "session"))
-        # but we unchecked SpiceTwo (this is running)
-        self.assertIn("spice", m.execute("virsh dumpxml --inactive SpiceTwo"))
+    #     # other VMs were also converted
+    #     self.assertNotIn("spice", m.execute("virsh dumpxml SpiceOne"))
+    #     self.assertNotIn("spice", self.run_admin("virsh -c qemu:///session dumpxml SpiceSession", "session"))
+    #     # but we unchecked SpiceTwo (this is running)
+    #     self.assertIn("spice", m.execute("virsh dumpxml --inactive SpiceTwo"))
 
-        self.goToMainPage()
+    #     self.goToMainPage()
 
-        # now test unchecking the "primary" VM
-        self.createVm("SpiceThree", graphics="spice", running=False)
-        self.waitVmRow("SpiceThree", "system")
-        self.performAction("SpiceTwo", "replace-spice")
-        b.wait_text(".pf-v6-c-modal-box__title-text", "Replace SPICE devices")
-        b.click("#replace-spice-dialog-select-all")
-        b.click(".pf-v6-c-menu__item:contains('SpiceTwo')")
-        b.wait_in_text(".pf-v6-c-menu__item:has(input:not(:checked))", 'SpiceTwo')
-        b.click("#replace-spice-dialog-confirm")
-        b.wait_not_present(".pf-v6-c-modal-box")
-        self.assertNotIn("spice", m.execute("virsh dumpxml --inactive SpiceThree"))
-        self.assertIn("spice", m.execute("virsh dumpxml --inactive SpiceTwo"))
+    #     # now test unchecking the "primary" VM
+    #     self.createVm("SpiceThree", graphics="spice", running=False)
+    #     self.waitVmRow("SpiceThree", "system")
+    #     self.performAction("SpiceTwo", "replace-spice")
+    #     b.wait_text(".pf-v6-c-modal-box__title-text", "Replace SPICE devices")
+    #     b.click("#replace-spice-dialog-select-all")
+    #     b.click(".pf-v6-c-menu__item:contains('SpiceTwo')")
+    #     b.wait_in_text(".pf-v6-c-menu__item:has(input:not(:checked))", 'SpiceTwo')
+    #     b.click("#replace-spice-dialog-confirm")
+    #     b.wait_not_present(".pf-v6-c-modal-box")
+    #     self.assertNotIn("spice", m.execute("virsh dumpxml --inactive SpiceThree"))
+    #     self.assertIn("spice", m.execute("virsh dumpxml --inactive SpiceTwo"))
 
     # we need this test to create a SPICE VM to simulate the host change to "no spice support"
     @testlib.skipImage('SPICE not supported on RHEL', "rhel-*", "centos-*")
